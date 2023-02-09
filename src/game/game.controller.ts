@@ -1,54 +1,109 @@
-import { Body, HttpStatus, Patch, Put } from '@nestjs/common';
-import { HttpException } from '@nestjs/common';
-import { Controller, Get, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Patch,
+  Put,
+  Controller,
+  Get,
+  Param,
+  Post,
+  HttpException,
+  HttpStatus,
+} from '@nestjs/common';
 
-import { GameRepository } from './game.repository';
-import { GameEntity } from './game.entity';
-import { PlayerEntity } from './player/player.entity';
 import { PlayerPickJoKenPoDTO } from './dto/playerPickJoKenPo.dto';
 import { AddPlayerInGameDTO } from './dto/addPlayerInGame.dto';
+import { GameService } from './game.service';
 
 @Controller('/games')
 class GameController {
-  constructor(private gameRepository: GameRepository) {}
+  constructor(private gameService: GameService) {}
 
   @Post()
   createGame() {
-    const newGame = new GameEntity();
+    try {
+      const response = this.gameService.createGame();
 
-    this.gameRepository.save(newGame);
+      if (response instanceof HttpException) {
+        throw response;
+      }
 
-    return newGame;
+      return response;
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get()
   getAllGames() {
-    return this.gameRepository.getAll();
+    try {
+      const response = this.gameService.getAllGames();
+
+      if (response instanceof HttpException) {
+        throw response;
+      }
+
+      return response;
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Get('/:gameId')
   getGameById(@Param('gameId') gameId: string) {
-    const existingGame = this.gameRepository.getById(gameId);
+    try {
+      const response = this.gameService.getGameById(gameId);
 
-    if (!existingGame) {
-      throw new HttpException('Game not found', HttpStatus.NOT_FOUND);
+      if (response instanceof HttpException) {
+        throw response;
+      }
+
+      return response;
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    return existingGame;
   }
 
   @Put('/:gameId/restart')
   restartGame(@Param('gameId') gameId: string) {
-    const existingGame = this.gameRepository.getById(gameId);
+    try {
+      const response = this.gameService.restartGame(gameId);
 
-    if (!existingGame) {
-      throw new HttpException('Game not found', HttpStatus.NOT_FOUND);
+      if (response instanceof HttpException) {
+        throw response;
+      }
+
+      return response;
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    existingGame.restart();
-    this.gameRepository.update(existingGame);
-
-    return existingGame;
   }
 
   @Post('/:gameId/player')
@@ -56,32 +111,24 @@ class GameController {
     @Param('gameId') gameId: string,
     @Body() body: AddPlayerInGameDTO,
   ) {
-    const existingGame = this.gameRepository.getById(gameId);
+    try {
+      const response = this.gameService.addPlayerInGame(gameId, body.username);
 
-    if (!existingGame) {
-      throw new HttpException('Game not found', HttpStatus.NOT_FOUND);
+      if (response instanceof HttpException) {
+        throw response;
+      }
+
+      return response;
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    if (!existingGame.player1) {
-      existingGame.player1 = new PlayerEntity(body.username);
-
-      return existingGame;
-    }
-
-    if (existingGame.player1.username === body.username) {
-      throw new HttpException('Player already exists', HttpStatus.CONFLICT);
-    }
-
-    if (!existingGame.player2) {
-      existingGame.player2 = new PlayerEntity(body.username);
-
-      return existingGame;
-    }
-
-    throw new HttpException(
-      'Game already has enough players',
-      HttpStatus.BAD_REQUEST,
-    );
   }
 
   @Patch('/:gameId/player/:playerUsername')
@@ -90,29 +137,28 @@ class GameController {
     @Param('playerUsername') playerUsername: string,
     @Body() body: PlayerPickJoKenPoDTO,
   ) {
-    const existingGame = this.gameRepository.getById(gameId);
+    try {
+      const response = this.gameService.playerPickJoKenPo(
+        gameId,
+        playerUsername,
+        body.pick,
+      );
 
-    if (!existingGame) {
-      throw new HttpException('Game not found', HttpStatus.NOT_FOUND);
+      if (response instanceof HttpException) {
+        throw response;
+      }
+
+      return response;
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    if (existingGame.finish) {
-      throw new HttpException('Game over', HttpStatus.BAD_REQUEST);
-    }
-
-    const isPlayerPickSuccessful = existingGame.playerPick(
-      playerUsername,
-      body.pick,
-    );
-
-    if (!isPlayerPickSuccessful) {
-      throw new HttpException('Player not found', HttpStatus.NOT_FOUND);
-    }
-
-    existingGame.result();
-    this.gameRepository.update(existingGame);
-
-    return existingGame;
   }
 }
 
