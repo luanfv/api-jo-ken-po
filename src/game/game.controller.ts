@@ -6,6 +6,7 @@ import { GameRepository } from './game.repository';
 import { GameEntity } from './game.entity';
 import { PlayerEntity } from './player/player.entity';
 import { PlayerPickJoKenPoDTO } from './dto/playerPickJoKenPo.dto';
+import { AddPlayerInGameDTO } from './dto/addPlayerInGame.dto';
 
 @Controller('/games')
 class GameController {
@@ -51,7 +52,10 @@ class GameController {
   }
 
   @Post('/:gameId/player')
-  addPlayerInGame(@Param('gameId') gameId: string, @Body() body) {
+  addPlayerInGame(
+    @Param('gameId') gameId: string,
+    @Body() body: AddPlayerInGameDTO,
+  ) {
     const existingGame = this.gameRepository.getById(gameId);
 
     if (!existingGame) {
