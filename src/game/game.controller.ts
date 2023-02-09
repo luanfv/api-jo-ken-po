@@ -5,7 +5,7 @@ import { Controller, Get, Param, Post } from '@nestjs/common';
 import { GameRepository } from './game.repository';
 import { GameEntity } from './game.entity';
 import { PlayerEntity } from './player/player.entity';
-import { SelectJoKenPoInTheGameDTO } from './dto/SelectJoKenPoInTheGame.dto';
+import { PlayerPickJoKenPoDTO } from './dto/playerPickJoKenPo.dto';
 
 @Controller('/games')
 class GameController {
@@ -51,7 +51,7 @@ class GameController {
   }
 
   @Post('/:gameId/player')
-  addPlayerInTheGame(@Param('gameId') gameId: string, @Body() body) {
+  addPlayerInGame(@Param('gameId') gameId: string, @Body() body) {
     const existingGame = this.gameRepository.getById(gameId);
 
     if (!existingGame) {
@@ -81,10 +81,10 @@ class GameController {
   }
 
   @Patch('/:gameId/player/:playerUsername')
-  selectJoKenPoPlayerInTheGame(
+  playerPickJoKenPo(
     @Param('gameId') gameId: string,
     @Param('playerUsername') playerUsername: string,
-    @Body() body: SelectJoKenPoInTheGameDTO,
+    @Body() body: PlayerPickJoKenPoDTO,
   ) {
     const existingGame = this.gameRepository.getById(gameId);
 
@@ -96,19 +96,13 @@ class GameController {
       throw new HttpException('Game over', HttpStatus.BAD_REQUEST);
     }
 
-    switch (playerUsername) {
-      case existingGame.player1.username:
-        existingGame.player1.response = body.pick;
+    const isPlayerPickSuccessful = existingGame.playerPick(
+      playerUsername,
+      body.pick,
+    );
 
-        break;
-
-      case existingGame.player2.username:
-        existingGame.player2.response = body.pick;
-
-        break;
-
-      default:
-        throw new HttpException('Player not found', HttpStatus.NOT_FOUND);
+    if (!isPlayerPickSuccessful) {
+      throw new HttpException('Player not found', HttpStatus.NOT_FOUND);
     }
 
     existingGame.result();

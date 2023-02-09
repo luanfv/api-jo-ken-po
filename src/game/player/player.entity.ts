@@ -2,7 +2,7 @@ type JoKenPo = 'JO' | 'KEN' | 'PO';
 
 class PlayerEntity {
   username: string;
-  response: JoKenPo | undefined;
+  pick: JoKenPo | undefined;
 
   constructor(username: string) {
     this.username = username;
