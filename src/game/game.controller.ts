@@ -5,6 +5,7 @@ import { Controller, Get, Param, Post } from '@nestjs/common';
 import { GameRepository } from './game.repository';
 import { GameEntity } from './game.entity';
 import { PlayerEntity } from './player/player.entity';
+import { SelectJoKenPoInTheGameDTO } from './dto/SelectJoKenPoInTheGame.dto';
 
 @Controller('/games')
 class GameController {
@@ -83,7 +84,7 @@ class GameController {
   selectJoKenPoPlayerInTheGame(
     @Param('gameId') gameId: string,
     @Param('playerUsername') playerUsername: string,
-    @Body() body,
+    @Body() body: SelectJoKenPoInTheGameDTO,
   ) {
     const existingGame = this.gameRepository.getById(gameId);
 
