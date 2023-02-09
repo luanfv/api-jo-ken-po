@@ -16,6 +16,16 @@ class GameRepository {
   getById(id: string) {
     return this.games.find((game) => game.id === id);
   }
+
+  update(game: GameEntity) {
+    this.games = this.games.map((gameRepository) => {
+      if (gameRepository.id === game.id) {
+        return game;
+      }
+
+      return gameRepository;
+    });
+  }
 }
 
 export { GameRepository };
