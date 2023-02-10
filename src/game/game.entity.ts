@@ -4,8 +4,8 @@ import { JoKenPo, PlayerEntity } from './player/player.entity';
 
 class GameEntity {
   id: string;
-  player1: PlayerEntity;
-  player2: PlayerEntity;
+  player1: PlayerEntity | undefined;
+  player2: PlayerEntity | undefined;
   winner: string | undefined;
   finish: boolean;
 

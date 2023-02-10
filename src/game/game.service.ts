@@ -30,19 +30,6 @@ class GameService {
     return existingGame;
   }
 
-  restartGame(gameId: string) {
-    const existingGame = this.gameRepository.getById(gameId);
-
-    if (!existingGame) {
-      return new HttpException('Game not found', HttpStatus.NOT_FOUND);
-    }
-
-    existingGame.restart();
-    this.gameRepository.update(existingGame);
-
-    return existingGame;
-  }
-
   addPlayerInGame(gameId: string, username: string) {
     const existingGame = this.gameRepository.getById(gameId);
 
@@ -90,7 +77,18 @@ class GameService {
     }
 
     existingGame.result();
-    this.gameRepository.update(existingGame);
+
+    return existingGame;
+  }
+
+  restartGame(gameId: string) {
+    const existingGame = this.gameRepository.getById(gameId);
+
+    if (!existingGame) {
+      return new HttpException('Game not found', HttpStatus.NOT_FOUND);
+    }
+
+    existingGame.restart();
 
     return existingGame;
   }
