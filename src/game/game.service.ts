@@ -66,7 +66,7 @@ class GameService {
       return new HttpException('Game not found', HttpStatus.NOT_FOUND);
     }
 
-    if (existingGame.finish) {
+    if (existingGame.isGamOver) {
       return new HttpException('Game over', HttpStatus.BAD_REQUEST);
     }
 
