@@ -588,4 +588,109 @@ describe('GameService', () => {
       });
     });
   });
+
+  describe('WHEN called restartGame', () => {
+    it('SHOULD called GameRepository.getById', () => {
+      jest
+        .spyOn(gameRepository, 'getById')
+        .mockImplementation(() => expect.any(GameEntity));
+
+      gameService.addPlayerInGame(expect.any(String), expect.any(String));
+
+      expect(gameRepository.getById).toBeCalled();
+    });
+
+    describe('AND game not found', () => {
+      it('SHOULD return instance of HttpException', () => {
+        jest
+          .spyOn(gameRepository, 'getById')
+          .mockImplementation(() => undefined);
+
+        const result = gameService.addPlayerInGame('gameId', 'username');
+
+        expect(result instanceof HttpException).toBe(true);
+      });
+
+      it('SHOULD return message = "Game not found" AND http status = NOT FOUND', () => {
+        jest
+          .spyOn(gameRepository, 'getById')
+          .mockImplementation(() => undefined);
+
+        const result = gameService.addPlayerInGame('gameId', 'username');
+        const resultExpected = new HttpException(
+          'Game not found',
+          HttpStatus.NOT_FOUND,
+        );
+
+        expect(result).toEqual(resultExpected);
+      });
+    });
+
+    describe('AND reset game', () => {
+      it('SHOULD change isGamOver to false', () => {
+        const game = new GameEntity();
+        game.player1 = new PlayerEntity('player1');
+        game.player2 = new PlayerEntity('player2');
+
+        jest.spyOn(gameRepository, 'getById').mockImplementation(() => game);
+        jest.spyOn(GameEntity.prototype, 'playerPick');
+
+        gameService.playerPickJoKenPo(game.id, 'player1', 'JO');
+        gameService.playerPickJoKenPo(game.id, 'player2', 'KEN');
+
+        const result = gameService.restartGame(game.id) as GameEntity;
+
+        expect(result.isGamOver).toBe(false);
+      });
+
+      it('SHOULD change player1.pick and player2.pick to undefined', () => {
+        const game = new GameEntity();
+        game.player1 = new PlayerEntity('player1');
+        game.player2 = new PlayerEntity('player2');
+
+        jest.spyOn(gameRepository, 'getById').mockImplementation(() => game);
+        jest.spyOn(GameEntity.prototype, 'playerPick');
+
+        gameService.playerPickJoKenPo(game.id, 'player1', 'JO');
+        gameService.playerPickJoKenPo(game.id, 'player2', 'KEN');
+
+        const result = gameService.restartGame(game.id) as GameEntity;
+
+        expect(result.player1.pick).toBe(undefined);
+        expect(result.player2.pick).toBe(undefined);
+      });
+
+      it('SHOULD change winner to undefined', () => {
+        const game = new GameEntity();
+        game.player1 = new PlayerEntity('player1');
+        game.player2 = new PlayerEntity('player2');
+
+        jest.spyOn(gameRepository, 'getById').mockImplementation(() => game);
+        jest.spyOn(GameEntity.prototype, 'playerPick');
+
+        gameService.playerPickJoKenPo(game.id, 'player1', 'JO');
+        gameService.playerPickJoKenPo(game.id, 'player2', 'KEN');
+
+        const result = gameService.restartGame(game.id) as GameEntity;
+
+        expect(result.winner).toBe(undefined);
+      });
+
+      it('SHOULD return game', () => {
+        const game = new GameEntity();
+        game.player1 = new PlayerEntity('player1');
+        game.player2 = new PlayerEntity('player2');
+
+        jest.spyOn(gameRepository, 'getById').mockImplementation(() => game);
+        jest.spyOn(GameEntity.prototype, 'playerPick');
+
+        gameService.playerPickJoKenPo(game.id, 'player1', 'JO');
+        gameService.playerPickJoKenPo(game.id, 'player2', 'KEN');
+
+        const result = gameService.restartGame(game.id);
+
+        expect(result instanceof GameEntity).toBe(true);
+      });
+    });
+  });
 });
