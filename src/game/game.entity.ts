@@ -4,14 +4,14 @@ import { JoKenPo, PlayerEntity } from './player/player.entity';
 
 class GameEntity {
   id: string;
-  player1: PlayerEntity;
-  player2: PlayerEntity;
+  player1: PlayerEntity | undefined;
+  player2: PlayerEntity | undefined;
   winner: string | undefined;
-  finish: boolean;
+  isGamOver: boolean;
 
   constructor() {
     this.id = uuid();
-    this.finish = false;
+    this.isGamOver = false;
   }
 
   playerPick(username: string, pick: JoKenPo): boolean {
@@ -41,7 +41,7 @@ class GameEntity {
       return;
     }
 
-    this.finish = true;
+    this.isGamOver = true;
 
     if (this.player1.pick === this.player2.pick) {
       return;
@@ -71,7 +71,7 @@ class GameEntity {
   }
 
   restart() {
-    this.finish = false;
+    this.isGamOver = false;
     this.player1.pick = undefined;
     this.player2.pick = undefined;
     this.winner = undefined;
