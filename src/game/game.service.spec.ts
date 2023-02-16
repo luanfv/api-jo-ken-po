@@ -606,7 +606,7 @@ describe('GameService', () => {
           .spyOn(gameRepository, 'getById')
           .mockImplementation(() => undefined);
 
-        const result = gameService.addPlayerInGame('gameId', 'username');
+        const result = gameService.restartGame('');
 
         expect(result instanceof HttpException).toBe(true);
       });
@@ -616,7 +616,7 @@ describe('GameService', () => {
           .spyOn(gameRepository, 'getById')
           .mockImplementation(() => undefined);
 
-        const result = gameService.addPlayerInGame('gameId', 'username');
+        const result = gameService.restartGame('');
         const resultExpected = new HttpException(
           'Game not found',
           HttpStatus.NOT_FOUND,

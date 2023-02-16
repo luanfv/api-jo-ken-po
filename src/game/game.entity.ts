@@ -72,8 +72,15 @@ class GameEntity {
 
   restart() {
     this.isGamOver = false;
-    this.player1.pick = undefined;
-    this.player2.pick = undefined;
+
+    if (this.player1) {
+      this.player1.pick = undefined;
+    }
+
+    if (this.player2) {
+      this.player2.pick = undefined;
+    }
+
     this.winner = undefined;
   }
 }
