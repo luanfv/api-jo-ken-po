@@ -40,32 +40,10 @@ class GameController {
     }
   }
 
-  @Get()
-  getAllGames() {
-    try {
-      const response = this.gameService.getAllGames();
-
-      if (response instanceof HttpException) {
-        throw response;
-      }
-
-      return response;
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw err;
-      }
-
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
   @Get('/:gameId')
-  getGameById(@Param('gameId') gameId: string) {
+  async getGameById(@Param('gameId') gameId: string) {
     try {
-      const response = this.gameService.getGameById(gameId);
+      const response = await this.gameService.getGameById(gameId);
 
       if (response instanceof HttpException) {
         throw response;
@@ -107,12 +85,15 @@ class GameController {
   }
 
   @Post('/:gameId/player')
-  addPlayerInGame(
+  async addPlayerInGame(
     @Param('gameId') gameId: string,
     @Body() body: AddPlayerInGameDTO,
   ) {
     try {
-      const response = this.gameService.addPlayerInGame(gameId, body.username);
+      const response = await this.gameService.addPlayerInGame(
+        gameId,
+        body.username,
+      );
 
       if (response instanceof HttpException) {
         throw response;

@@ -1,30 +1,21 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
+
+import { prisma } from '../databases/prisma';
 import { GameEntity } from './game.entity';
 
 @Injectable()
 class GameRepository {
-  private games: GameEntity[] = [];
-
-  save(game: GameEntity) {
-    this.games.push(game);
+  async create() {
+    await prisma.game.create({ data: new GameEntity() });
   }
 
-  getAll() {
-    return this.games;
+  async find(findArgs: Prisma.GameFindFirstArgs) {
+    return await prisma.game.findFirst(findArgs);
   }
 
-  getById(id: string) {
-    return this.games.find((game) => game.id === id);
-  }
-
-  update(game: GameEntity) {
-    this.games = this.games.map((gameRepository) => {
-      if (gameRepository.id === game.id) {
-        return game;
-      }
-
-      return gameRepository;
-    });
+  async update(updateArgs: Prisma.GameUpdateArgs) {
+    return await prisma.game.update(updateArgs);
   }
 }
 
