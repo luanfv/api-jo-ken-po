@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 import { GameRepository } from './game.repository';
 import { PlayerRepository } from './player/player.repository';
-import { PlayerPick } from './player/player.entity';
+import { PlayerEntity, PlayerPick } from './player/player.entity';
 
 @Injectable()
 class GameService {
@@ -90,6 +90,67 @@ class GameService {
             },
           },
         },
+      },
+      where: {
+        id: gameId,
+      },
+    });
+  }
+
+  private getGamesWinnerId(players: PlayerEntity[]) {
+    if (players[0].pick === players[1].pick) {
+      return null;
+    }
+
+    if (players[0].pick === 'JO' && players[1].pick === 'PO') {
+      return players[0].id;
+    }
+
+    if (players[0].pick === 'KEN' && players[1].pick === 'JO') {
+      return players[0].id;
+    }
+
+    if (players[0].pick === 'PO' && players[1].pick === 'KEN') {
+      return players[0].id;
+    }
+
+    return players[1].id;
+  }
+
+  async finishGame(gameId: string) {
+    const game = await this.gameRepository.read({
+      where: {
+        id: gameId,
+      },
+    });
+
+    if (game.is_game_over) {
+      return new HttpException(
+        'This game is over, you need to restart the game',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    const players = await this.playerRepository.readAll({
+      where: {
+        game_id: gameId,
+      },
+    });
+
+    if (!players[0] || !players[1]) {
+      return new HttpException('Not enough players', HttpStatus.BAD_REQUEST);
+    }
+
+    if (!players[0].pick || !players[1].pick) {
+      return new HttpException('Not all players pick', HttpStatus.BAD_REQUEST);
+    }
+
+    const winnerId = this.getGamesWinnerId(players as PlayerEntity[]);
+
+    return await this.gameRepository.update({
+      data: {
+        is_game_over: true,
+        winner_id: winnerId,
       },
       where: {
         id: gameId,

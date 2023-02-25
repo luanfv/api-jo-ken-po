@@ -78,6 +78,28 @@ class GameController {
     }
   }
 
+  @Put('/:gameId/finish')
+  async finishGame(@Param('gameId') gameId: string) {
+    try {
+      const response = await this.gameService.finishGame(gameId);
+
+      if (response instanceof HttpException) {
+        throw response;
+      }
+
+      return response;
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Post('/:gameId/player')
   async addPlayerInGame(
     @Param('gameId') gameId: string,
