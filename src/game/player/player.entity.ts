@@ -1,11 +1,11 @@
 import { v4 as uuid } from 'uuid';
 
-type JoKenPo = 'JO' | 'KEN' | 'PO';
+type PlayerPick = 'JO' | 'KEN' | 'PO';
 
 class PlayerEntity {
   readonly id: string;
   readonly username: string;
-  readonly pick: JoKenPo | undefined;
+  readonly pick: PlayerPick | undefined;
   readonly game_id: string;
 
   constructor(gameId: string, username: string) {
@@ -15,4 +15,4 @@ class PlayerEntity {
   }
 }
 
-export { PlayerEntity, JoKenPo };
+export { PlayerEntity, PlayerPick };

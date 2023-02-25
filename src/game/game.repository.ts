@@ -7,10 +7,10 @@ import { GameEntity } from './game.entity';
 @Injectable()
 class GameRepository {
   async create() {
-    await prisma.game.create({ data: new GameEntity() });
+    return await prisma.game.create({ data: new GameEntity() });
   }
 
-  async find(findArgs: Prisma.GameFindFirstArgs) {
+  async read(findArgs: Prisma.GameFindFirstArgs) {
     return await prisma.game.findFirst(findArgs);
   }
 

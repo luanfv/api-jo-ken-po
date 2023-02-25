@@ -10,7 +10,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 
-import { PlayerPickJoKenPoDTO } from './dto/playerPickJoKenPo.dto';
+import { PlayerPickDTO } from './dto/playerPick.dto';
 import { AddPlayerInGameDTO } from './dto/addPlayerInGame.dto';
 import { GameService } from './game.service';
 
@@ -19,9 +19,9 @@ class GameController {
   constructor(private gameService: GameService) {}
 
   @Post()
-  createGame() {
+  async createGame() {
     try {
-      const response = this.gameService.createGame();
+      const response = await this.gameService.createGame();
 
       if (response instanceof HttpException) {
         throw response;
@@ -63,15 +63,9 @@ class GameController {
   }
 
   @Put('/:gameId/restart')
-  restartGame(@Param('gameId') gameId: string) {
+  async restartGame(@Param('gameId') gameId: string) {
     try {
-      const response = this.gameService.restartGame(gameId);
-
-      if (response instanceof HttpException) {
-        throw response;
-      }
-
-      return response;
+      return await this.gameService.restartGame(gameId);
     } catch (err) {
       if (err instanceof HttpException) {
         throw err;
@@ -113,13 +107,13 @@ class GameController {
   }
 
   @Patch('/:gameId/player/:playerUsername')
-  playerPickJoKenPo(
+  async playerPick(
     @Param('gameId') gameId: string,
     @Param('playerUsername') playerUsername: string,
-    @Body() body: PlayerPickJoKenPoDTO,
+    @Body() body: PlayerPickDTO,
   ) {
     try {
-      const response = this.gameService.playerPickJoKenPo(
+      const response = await this.gameService.playerPick(
         gameId,
         playerUsername,
         body.pick,

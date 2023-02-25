@@ -1,12 +1,12 @@
 import { IsNotEmpty } from 'class-validator';
 
-import { JoKenPo } from '../player/player.entity';
+import { PlayerPick } from '../player/player.entity';
 import { IsJoKenPo } from '../validator/is-jo-ken-po.validator';
 
-class PlayerPickJoKenPoDTO {
+class PlayerPickDTO {
   @IsNotEmpty()
   @IsJoKenPo({ message: 'pick needs to be: JO, KEN or PO' })
-  pick: JoKenPo;
+  pick: PlayerPick;
 }
 
-export { PlayerPickJoKenPoDTO };
+export { PlayerPickDTO };

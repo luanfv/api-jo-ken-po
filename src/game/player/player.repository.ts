@@ -1,43 +1,31 @@
 import { Injectable } from '@nestjs/common';
 
 import { prisma } from '../../databases/prisma';
-import { JoKenPo, PlayerEntity } from './player.entity';
+import { PlayerEntity } from './player.entity';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
 class PlayerRepository {
   async create(gameId: string, username: string) {
     return await prisma.player.create({
-      data: new PlayerEntity(username, gameId),
+      data: new PlayerEntity(gameId, username),
     });
   }
 
-  async getByGameId(gameId: string, where?: Prisma.PlayerWhereInput) {
-    return await prisma.player.findMany({
-      where: {
-        game_id: gameId,
-        ...where,
-      },
-    });
+  async read(readArgs: Prisma.PlayerFindFirstArgs) {
+    return await prisma.player.findFirst(readArgs);
   }
 
-  async getById(id: string) {
-    return await prisma.player.findFirst({
-      where: {
-        id: id,
-      },
-    });
+  async readAll(readAllArgs: Prisma.PlayerFindManyArgs) {
+    return await prisma.player.findMany(readAllArgs);
   }
 
-  async setPick(id: string, pick: JoKenPo) {
-    await prisma.player.update({
-      where: {
-        id: id,
-      },
-      data: {
-        pick: pick,
-      },
-    });
+  async update(updateArgs: Prisma.PlayerUpdateArgs) {
+    return await prisma.player.update(updateArgs);
+  }
+
+  async updateAll(updateAllArgs: Prisma.PlayerUpdateManyArgs) {
+    return await prisma.player.updateMany(updateAllArgs);
   }
 }
 

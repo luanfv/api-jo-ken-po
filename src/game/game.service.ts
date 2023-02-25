@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 import { GameRepository } from './game.repository';
 import { PlayerRepository } from './player/player.repository';
-import { JoKenPo } from './player/player.entity';
+import { PlayerPick } from './player/player.entity';
 
 @Injectable()
 class GameService {
@@ -16,21 +16,19 @@ class GameService {
   }
 
   async getGameById(gameId: string) {
-    const existingGame = await this.gameRepository.find({
+    return await this.gameRepository.read({
       where: {
         id: gameId,
       },
     });
-
-    if (!existingGame) {
-      return new HttpException('Game not found', HttpStatus.NOT_FOUND);
-    }
-
-    return existingGame;
   }
 
   async addPlayerInGame(gameId: string, username: string) {
-    const players = await this.playerRepository.getByGameId(gameId);
+    const players = await this.playerRepository.readAll({
+      where: {
+        game_id: gameId,
+      },
+    });
 
     if (players.length > 1) {
       return new HttpException(
@@ -46,8 +44,8 @@ class GameService {
     return await this.playerRepository.create(gameId, username);
   }
 
-  async playerPickJoKenPo(gameId: string, username: string, pick: JoKenPo) {
-    const existingGame = await this.gameRepository.find({
+  async playerPick(gameId: string, username: string, pick: PlayerPick) {
+    const existingGame = await this.gameRepository.read({
       where: {
         id: gameId,
       },
@@ -61,30 +59,42 @@ class GameService {
       return new HttpException('Game over', HttpStatus.BAD_REQUEST);
     }
 
-    const existingPlayer = await this.playerRepository.getByGameId(
-      existingGame.id,
-      {
+    const existingPlayer = await this.playerRepository.read({
+      where: {
+        game_id: existingGame.id,
         username,
       },
-    );
+    });
 
-    const result = await this.playerRepository.setPick(
-      existingPlayer[0].id,
-      pick,
-    );
-
-    return result;
+    return await this.playerRepository.update({
+      where: {
+        id: existingPlayer.id,
+      },
+      data: {
+        pick: pick,
+      },
+    });
   }
 
   async restartGame(gameId: string) {
-    return await this.gameRepository.update({
-      data: {
-        is_game_over: false,
-      },
-      where: {
-        id: gameId,
-      },
-    });
+    await Promise.allSettled([
+      this.gameRepository.update({
+        data: {
+          is_game_over: false,
+        },
+        where: {
+          id: gameId,
+        },
+      }),
+      this.playerRepository.updateAll({
+        data: {
+          pick: null,
+        },
+        where: {
+          game_id: gameId,
+        },
+      }),
+    ]);
   }
 }
 

@@ -84,7 +84,7 @@ describe('GameService', () => {
     });
   });
 
-  describe('WHEN called playerPickJoKenPo', () => {
+  describe('WHEN called playerPick', () => {
     it('SHOULD called GameRepository.getById', () => {});
 
     describe('AND game not found', () => {
