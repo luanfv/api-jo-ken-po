@@ -77,24 +77,24 @@ class GameService {
   }
 
   async restartGame(gameId: string) {
-    await Promise.allSettled([
-      this.gameRepository.update({
-        data: {
-          is_game_over: false,
+    return await this.gameRepository.update({
+      data: {
+        is_game_over: false,
+        players: {
+          updateMany: {
+            data: {
+              pick: null,
+            },
+            where: {
+              game_id: gameId,
+            },
+          },
         },
-        where: {
-          id: gameId,
-        },
-      }),
-      this.playerRepository.updateAll({
-        data: {
-          pick: null,
-        },
-        where: {
-          game_id: gameId,
-        },
-      }),
-    ]);
+      },
+      where: {
+        id: gameId,
+      },
+    });
   }
 }
 
