@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 
 import { prisma } from '../../databases/prisma';
 import { PlayerEntity } from './player.entity';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 class PlayerRepository {

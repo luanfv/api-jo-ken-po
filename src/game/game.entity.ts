@@ -1,14 +1,14 @@
+import { Game } from '@prisma/client';
 import { v4 as uuid } from 'uuid';
 
-import { PlayerEntity } from './player/player.entity';
-
-class GameEntity {
+class GameEntity implements Game {
   readonly id: string;
   readonly winner_id: string | undefined;
   readonly is_game_over: boolean;
+  readonly created_at: Date;
 
-  constructor(gameId?: string) {
-    this.id = gameId ?? uuid();
+  constructor() {
+    this.id = uuid();
     this.is_game_over = false;
   }
 }
