@@ -23,7 +23,7 @@ describe('GameService', () => {
   describe('WHEN called createGame', () => {
     it('SHOULD called GameRepository.save', () => {});
 
-    it('SHOULD return instance of GameEntity', () => {});
+    it('SHOULD return instance of Game', () => {});
   });
 
   describe('WHEN called getAll', () => {
@@ -48,7 +48,7 @@ describe('GameService', () => {
     });
 
     describe('AND have the game registered', () => {
-      it('SHOULD return instance of GameEntity', () => {});
+      it('SHOULD return instance of Game', () => {});
 
       it('SHOULD return the game', () => {});
     });
@@ -106,13 +106,13 @@ describe('GameService', () => {
     });
 
     describe('AND player 1 pick', () => {
-      it('SHOULD called GameEntity.playerPick', () => {});
+      it('SHOULD called Game.playerPick', () => {});
 
       it('SHOULD change player pick AND return game', () => {});
     });
 
     describe('AND player 2 pick', () => {
-      it('SHOULD called GameEntity.playerPick', () => {});
+      it('SHOULD called Game.playerPick', () => {});
 
       it('SHOULD change player pick AND return game', () => {});
     });

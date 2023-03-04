@@ -16,11 +16,13 @@ class GameService {
   }
 
   async getGameById(gameId: string) {
-    return await this.gameRepository.read({
-      where: {
-        id: gameId,
-      },
-    });
+    const game = await this.gameRepository.getById(gameId);
+
+    if (!game) {
+      return new HttpException('Game not found', HttpStatus.NOT_FOUND);
+    }
+
+    return game;
   }
 
   async addPlayerInGame(gameId: string, username: string) {
@@ -45,11 +47,7 @@ class GameService {
   }
 
   async playerPick(gameId: string, username: string, pick: PlayerPick) {
-    const existingGame = await this.gameRepository.read({
-      where: {
-        id: gameId,
-      },
-    });
+    const existingGame = await this.gameRepository.getById(gameId);
 
     if (!existingGame) {
       return new HttpException('Game not found', HttpStatus.NOT_FOUND);
@@ -77,24 +75,13 @@ class GameService {
   }
 
   async restartGame(gameId: string) {
-    return await this.gameRepository.update({
-      data: {
-        is_game_over: false,
-        players: {
-          updateMany: {
-            data: {
-              pick: null,
-            },
-            where: {
-              game_id: gameId,
-            },
-          },
-        },
-      },
-      where: {
-        id: gameId,
-      },
-    });
+    const game = await this.gameRepository.restart(gameId);
+
+    if (!game) {
+      return new HttpException('Game not found', HttpStatus.NOT_FOUND);
+    }
+
+    return game;
   }
 
   private getGamesWinnerId(players: PlayerEntity[]) {
@@ -118,11 +105,11 @@ class GameService {
   }
 
   async finishGame(gameId: string) {
-    const game = await this.gameRepository.read({
-      where: {
-        id: gameId,
-      },
-    });
+    const game = await this.gameRepository.getById(gameId);
+
+    if (!game) {
+      return new HttpException('Game not found', HttpStatus.NOT_FOUND);
+    }
 
     if (game.is_game_over) {
       return new HttpException(
@@ -147,15 +134,16 @@ class GameService {
 
     const winnerId = this.getGamesWinnerId(players as PlayerEntity[]);
 
-    return await this.gameRepository.update({
-      data: {
-        is_game_over: true,
-        winner_id: winnerId,
-      },
-      where: {
-        id: gameId,
-      },
-    });
+    const result = await this.gameRepository.setWinner(gameId, winnerId);
+
+    if (!result) {
+      return new HttpException(
+        'Internal server error in finish game',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return result;
   }
 }
 

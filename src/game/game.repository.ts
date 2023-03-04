@@ -1,22 +1,76 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Game } from '@prisma/client';
+import { v4 as uuid } from 'uuid';
 
 import { prisma } from '../databases/prisma';
-import { GameEntity } from './game.entity';
 
 @Injectable()
 class GameRepository {
   async create() {
-    return await prisma.game.create({ data: new GameEntity() });
+    try {
+      return await prisma.game.create({
+        data: {
+          id: uuid(),
+          is_game_over: false,
+        },
+      });
+    } catch {
+      return null;
+    }
   }
 
-  async read(findArgs: Prisma.GameFindFirstArgs) {
-    return await prisma.game.findFirst(findArgs);
+  async getById(gameId: string) {
+    try {
+      return await prisma.game.findFirst({
+        where: {
+          id: gameId,
+        },
+      });
+    } catch {
+      return null;
+    }
   }
 
-  async update(updateArgs: Prisma.GameUpdateArgs) {
-    return await prisma.game.update(updateArgs);
+  async restart(gameId) {
+    try {
+      return await prisma.game.update({
+        data: {
+          is_game_over: false,
+          players: {
+            updateMany: {
+              data: {
+                pick: null,
+              },
+              where: {
+                game_id: gameId,
+              },
+            },
+          },
+        },
+        where: {
+          id: gameId,
+        },
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  async setWinner(gameId: string, winnerId: string) {
+    try {
+      return await prisma.game.update({
+        data: {
+          is_game_over: true,
+          winner_id: winnerId,
+        },
+        where: {
+          id: gameId,
+        },
+      });
+    } catch {
+      return null;
+    }
   }
 }
 
-export { GameRepository };
+export { GameRepository, Game };
