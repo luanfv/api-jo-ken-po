@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Game } from '@prisma/client';
 import { v4 as uuid } from 'uuid';
 
-import { prisma } from '../databases/prisma';
+import { prisma } from '../../databases/prisma';
 
 @Injectable()
 class GameRepository {

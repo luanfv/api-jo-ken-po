@@ -1,7 +1,7 @@
 import { Test } from '@nestjs/testing';
 
 import { GameService } from './game.service';
-import { GameRepository } from './game.repository';
+import { GameRepository } from '../repositories/game.repository';
 
 describe('GameService', () => {
   let gameService: GameService;

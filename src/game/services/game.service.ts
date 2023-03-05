@@ -1,11 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
-import { GameRepository } from './game.repository';
+import { GameRepository } from '../repositories/game.repository';
 import {
   Player,
   PlayerPick,
   PlayerRepository,
-} from './player/player.repository';
+} from '../repositories/player.repository';
 
 @Injectable()
 class GameService {
@@ -157,7 +157,10 @@ class GameService {
 
     const winnerId = this.getGamesWinnerId(players);
 
-    const updatedGame = await this.gameRepository.setWinnerById(gameId, winnerId);
+    const updatedGame = await this.gameRepository.setWinnerById(
+      gameId,
+      winnerId,
+    );
 
     if (!updatedGame) {
       return new HttpException(
