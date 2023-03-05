@@ -1,7 +1,7 @@
 import { IsNotEmpty } from 'class-validator';
 
-import { PlayerPick } from '../player/player.entity';
 import { IsJoKenPo } from '../validator/is-jo-ken-po.validator';
+import { PlayerPick } from '../player/player.repository';
 
 class PlayerPickDTO {
   @IsNotEmpty()

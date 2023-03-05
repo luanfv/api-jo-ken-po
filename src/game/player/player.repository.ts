@@ -1,32 +1,66 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { Player } from '@prisma/client';
+import { v4 as uuid } from 'uuid';
 
 import { prisma } from '../../databases/prisma';
-import { PlayerEntity } from './player.entity';
+
+type PlayerPick = 'JO' | 'KEN' | 'PO';
 
 @Injectable()
 class PlayerRepository {
   async create(gameId: string, username: string) {
-    return await prisma.player.create({
-      data: new PlayerEntity(gameId, username),
-    });
+    try {
+      return await prisma.player.create({
+        data: {
+          id: uuid(),
+          game_id: gameId,
+          username: username,
+        },
+      });
+    } catch {
+      return null;
+    }
   }
 
-  async read(readArgs: Prisma.PlayerFindFirstArgs) {
-    return await prisma.player.findFirst(readArgs);
+  async getByIdAndGameId(username: string, gameId: string) {
+    try {
+      return await prisma.player.findFirst({
+        where: {
+          game_id: gameId,
+          username,
+        },
+      });
+    } catch {
+      return null;
+    }
   }
 
-  async readAll(readAllArgs: Prisma.PlayerFindManyArgs) {
-    return await prisma.player.findMany(readAllArgs);
+  async getByGameId(gameId: string) {
+    try {
+      return await prisma.player.findMany({
+        where: {
+          game_id: gameId,
+        },
+      });
+    } catch {
+      return [];
+    }
   }
 
-  async update(updateArgs: Prisma.PlayerUpdateArgs) {
-    return await prisma.player.update(updateArgs);
-  }
-
-  async updateAll(updateAllArgs: Prisma.PlayerUpdateManyArgs) {
-    return await prisma.player.updateMany(updateAllArgs);
+  async setPickById(playerId: string, pick: PlayerPick) {
+    try {
+      return await prisma.player.update({
+        where: {
+          id: playerId,
+        },
+        data: {
+          pick: pick,
+        },
+      });
+    } catch {
+      return null;
+    }
   }
 }
 
-export { PlayerRepository };
+export { PlayerRepository, Player, PlayerPick };

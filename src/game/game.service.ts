@@ -1,8 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 
 import { GameRepository } from './game.repository';
-import { PlayerRepository } from './player/player.repository';
-import { PlayerEntity, PlayerPick } from './player/player.entity';
+import {
+  Player,
+  PlayerPick,
+  PlayerRepository,
+} from './player/player.repository';
 
 @Injectable()
 class GameService {
@@ -12,7 +15,16 @@ class GameService {
   ) {}
 
   async createGame() {
-    return await this.gameRepository.create();
+    const game = await this.gameRepository.create();
+
+    if (!game) {
+      return new HttpException(
+        'Internal server error in create game',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return game;
   }
 
   async getGameById(gameId: string) {
@@ -26,11 +38,7 @@ class GameService {
   }
 
   async addPlayerInGame(gameId: string, username: string) {
-    const players = await this.playerRepository.readAll({
-      where: {
-        game_id: gameId,
-      },
-    });
+    const players = await this.playerRepository.getByGameId(gameId);
 
     if (players.length > 1) {
       return new HttpException(
@@ -43,7 +51,16 @@ class GameService {
       return new HttpException('Player already exists', HttpStatus.CONFLICT);
     }
 
-    return await this.playerRepository.create(gameId, username);
+    const player = this.playerRepository.create(gameId, username);
+
+    if (!player) {
+      return new HttpException(
+        'Internal server error in create player',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return player;
   }
 
   async playerPick(gameId: string, username: string, pick: PlayerPick) {
@@ -57,25 +74,32 @@ class GameService {
       return new HttpException('Game over', HttpStatus.BAD_REQUEST);
     }
 
-    const existingPlayer = await this.playerRepository.read({
-      where: {
-        game_id: existingGame.id,
-        username,
-      },
-    });
+    const existingPlayer = await this.playerRepository.getByIdAndGameId(
+      username,
+      existingGame.id,
+    );
 
-    return await this.playerRepository.update({
-      where: {
-        id: existingPlayer.id,
-      },
-      data: {
-        pick: pick,
-      },
-    });
+    if (!existingPlayer) {
+      return new HttpException('Game not found', HttpStatus.NOT_FOUND);
+    }
+
+    const player = await this.playerRepository.setPickById(
+      existingPlayer.id,
+      pick,
+    );
+
+    if (!player) {
+      return new HttpException(
+        'Internal server error in set player pick',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return player;
   }
 
   async restartGame(gameId: string) {
-    const game = await this.gameRepository.restart(gameId);
+    const game = await this.gameRepository.restartById(gameId);
 
     if (!game) {
       return new HttpException('Game not found', HttpStatus.NOT_FOUND);
@@ -84,7 +108,7 @@ class GameService {
     return game;
   }
 
-  private getGamesWinnerId(players: PlayerEntity[]) {
+  private getGamesWinnerId(players: Player[]) {
     if (players[0].pick === players[1].pick) {
       return null;
     }
@@ -118,11 +142,7 @@ class GameService {
       );
     }
 
-    const players = await this.playerRepository.readAll({
-      where: {
-        game_id: gameId,
-      },
-    });
+    const players = await this.playerRepository.getByGameId(gameId);
 
     if (!players[0] || !players[1]) {
       return new HttpException('Not enough players', HttpStatus.BAD_REQUEST);
@@ -132,9 +152,9 @@ class GameService {
       return new HttpException('Not all players pick', HttpStatus.BAD_REQUEST);
     }
 
-    const winnerId = this.getGamesWinnerId(players as PlayerEntity[]);
+    const winnerId = this.getGamesWinnerId(players);
 
-    const result = await this.gameRepository.setWinner(gameId, winnerId);
+    const result = await this.gameRepository.setWinnerById(gameId, winnerId);
 
     if (!result) {
       return new HttpException(

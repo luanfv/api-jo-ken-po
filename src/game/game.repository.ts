@@ -31,7 +31,7 @@ class GameRepository {
     }
   }
 
-  async restart(gameId) {
+  async restartById(gameId: string) {
     try {
       return await prisma.game.update({
         data: {
@@ -56,7 +56,7 @@ class GameRepository {
     }
   }
 
-  async setWinner(gameId: string, winnerId: string) {
+  async setWinnerById(gameId: string, winnerId: string) {
     try {
       return await prisma.game.update({
         data: {
