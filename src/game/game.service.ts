@@ -15,26 +15,26 @@ class GameService {
   ) {}
 
   async createGame() {
-    const game = await this.gameRepository.create();
+    const createdGame = await this.gameRepository.create();
 
-    if (!game) {
+    if (!createdGame) {
       return new HttpException(
         'Internal server error in create game',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
 
-    return game;
+    return createdGame;
   }
 
   async getGameById(gameId: string) {
-    const game = await this.gameRepository.getById(gameId);
+    const existingGame = await this.gameRepository.getById(gameId);
 
-    if (!game) {
+    if (!existingGame) {
       return new HttpException('Game not found', HttpStatus.NOT_FOUND);
     }
 
-    return game;
+    return existingGame;
   }
 
   async addPlayerInGame(gameId: string, username: string) {
@@ -51,16 +51,16 @@ class GameService {
       return new HttpException('Player already exists', HttpStatus.CONFLICT);
     }
 
-    const player = this.playerRepository.create(gameId, username);
+    const createdPlayer = this.playerRepository.create(gameId, username);
 
-    if (!player) {
+    if (!createdPlayer) {
       return new HttpException(
         'Internal server error in create player',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
 
-    return player;
+    return createdPlayer;
   }
 
   async playerPick(gameId: string, username: string, pick: PlayerPick) {
@@ -83,29 +83,32 @@ class GameService {
       return new HttpException('Game not found', HttpStatus.NOT_FOUND);
     }
 
-    const player = await this.playerRepository.setPickById(
+    const updatedPlayer = await this.playerRepository.setPickById(
       existingPlayer.id,
       pick,
     );
 
-    if (!player) {
+    if (!updatedPlayer) {
       return new HttpException(
         'Internal server error in set player pick',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
 
-    return player;
+    return updatedPlayer;
   }
 
   async restartGame(gameId: string) {
-    const game = await this.gameRepository.restartById(gameId);
+    const updatedGame = await this.gameRepository.restartById(gameId);
 
-    if (!game) {
-      return new HttpException('Game not found', HttpStatus.NOT_FOUND);
+    if (!updatedGame) {
+      return new HttpException(
+        'Internal server error in restart game',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
 
-    return game;
+    return updatedGame;
   }
 
   private getGamesWinnerId(players: Player[]) {
@@ -129,13 +132,13 @@ class GameService {
   }
 
   async finishGame(gameId: string) {
-    const game = await this.gameRepository.getById(gameId);
+    const existingGame = await this.gameRepository.getById(gameId);
 
-    if (!game) {
+    if (!existingGame) {
       return new HttpException('Game not found', HttpStatus.NOT_FOUND);
     }
 
-    if (game.is_game_over) {
+    if (existingGame.is_game_over) {
       return new HttpException(
         'This game is over, you need to restart the game',
         HttpStatus.BAD_REQUEST,
@@ -154,16 +157,16 @@ class GameService {
 
     const winnerId = this.getGamesWinnerId(players);
 
-    const result = await this.gameRepository.setWinnerById(gameId, winnerId);
+    const updatedGame = await this.gameRepository.setWinnerById(gameId, winnerId);
 
-    if (!result) {
+    if (!updatedGame) {
       return new HttpException(
         'Internal server error in finish game',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
 
-    return result;
+    return updatedGame;
   }
 }
 
