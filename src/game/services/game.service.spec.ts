@@ -1,7 +1,9 @@
 import { Test } from '@nestjs/testing';
 
 import { GameService } from './game.service';
-import { GameRepository } from '../repositories/game.repository';
+import { GameRepository, Game } from '../repositories/game.repository';
+import { PlayerRepository } from '../repositories/player.repository';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 describe('GameService', () => {
   let gameService: GameService;
@@ -9,7 +11,7 @@ describe('GameService', () => {
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
-      providers: [GameService, GameRepository],
+      providers: [GameService, GameRepository, PlayerRepository],
     }).compile();
 
     gameService = moduleRef.get<GameService>(GameService);
@@ -21,9 +23,48 @@ describe('GameService', () => {
   });
 
   describe('WHEN called createGame', () => {
-    it('SHOULD called GameRepository.save', () => {});
+    it('SHOULD called GameRepository.create', () => {
+      jest
+        .spyOn(gameRepository, 'create')
+        .mockImplementation(() => expect.anything());
+      gameService.createGame();
 
-    it('SHOULD return instance of Game', () => {});
+      expect(gameRepository.create).toBeCalled();
+    });
+
+    describe('AND can create new game', () => {
+      it('SHOULD return a Game', async () => {
+        const game: Game = {
+          id: expect.any(String),
+          is_game_over: false,
+          winner_id: null,
+          created_at: expect.any(Date),
+        };
+
+        jest
+          .spyOn(gameRepository, 'create')
+          .mockImplementation(async () => game);
+
+        const result = await gameService.createGame();
+        const expectedResult = game;
+
+        expect(result).toEqual(expectedResult);
+      });
+    });
+
+    describe('AND cannot create new game', () => {
+      it('SHOULD return a HttpException', async () => {
+        jest.spyOn(gameRepository, 'create').mockImplementation(null);
+
+        const result = await gameService.createGame();
+        const expectedResult = new HttpException(
+          'Internal server error in create game',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+
+        expect(result).toEqual(expectedResult);
+      });
+    });
   });
 
   describe('WHEN called getAll', () => {
