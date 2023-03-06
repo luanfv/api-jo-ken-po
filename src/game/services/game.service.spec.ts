@@ -1,9 +1,9 @@
 import { Test } from '@nestjs/testing';
+import { HttpException, HttpStatus } from '@nestjs/common';
 
 import { GameService } from './game.service';
 import { GameRepository, Game } from '../repositories/game.repository';
 import { PlayerRepository } from '../repositories/player.repository';
-import { HttpException, HttpStatus } from '@nestjs/common';
 
 describe('GameService', () => {
   let gameService: GameService;
@@ -67,31 +67,51 @@ describe('GameService', () => {
     });
   });
 
-  describe('WHEN called getAll', () => {
-    it('SHOULD called GameRepository.getAll', () => {});
-
-    describe('AND do not have games registered', () => {
-      it('SHOULD return a empty array', () => {});
-    });
-
-    describe('AND has games registered', () => {
-      it('SHOULD return an array with all games', () => {});
-    });
-  });
-
   describe('WHEN called getGameById', () => {
-    it('SHOULD called GameRepository.getById', () => {});
+    it('SHOULD called GameRepository.getById', () => {
+      jest
+        .spyOn(gameRepository, 'getById')
+        .mockImplementation(async () => expect.anything());
 
-    describe('AND game not found', () => {
-      it('SHOULD return instance of HttpException', () => {});
+      gameService.getGameById('');
 
-      it('SHOULD return message = "Game not found" AND http status = NOT FOUND', () => {});
+      expect(gameRepository.getById).toBeCalled();
     });
 
-    describe('AND have the game registered', () => {
-      it('SHOULD return instance of Game', () => {});
+    describe('AND can game found', () => {
+      it('SHOULD return a Game', async () => {
+        const game: Game = {
+          id: expect.any(String),
+          is_game_over: false,
+          winner_id: null,
+          created_at: expect.any(Date),
+        };
 
-      it('SHOULD return the game', () => {});
+        jest
+          .spyOn(gameRepository, 'getById')
+          .mockImplementation(async () => game);
+
+        const result = await gameService.getGameById(expect.any(String));
+        const expectedResult = game;
+
+        expect(result).toEqual(expectedResult);
+      });
+    });
+
+    describe('AND cannot game found', () => {
+      it('SHOULD return a HttpException', async () => {
+        jest
+          .spyOn(gameRepository, 'getById')
+          .mockImplementation(async () => null);
+
+        const result = await gameService.getGameById(expect.any(String));
+        const expectedResult = new HttpException(
+          'Game not found',
+          HttpStatus.NOT_FOUND,
+        );
+
+        expect(result).toEqual(expectedResult);
+      });
     });
   });
 
