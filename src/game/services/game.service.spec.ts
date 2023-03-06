@@ -4,6 +4,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { GameService } from './game.service';
 import { GameRepository, Game } from '../repositories/game.repository';
 import { PlayerRepository } from '../repositories/player.repository';
+import { prisma } from '../../databases/prisma';
 
 describe('GameService', () => {
   let gameService: GameService;
@@ -23,11 +24,13 @@ describe('GameService', () => {
   });
 
   describe('WHEN called createGame', () => {
-    it('SHOULD called GameRepository.create', () => {
+    it('SHOULD called GameRepository.create', async () => {
+      jest.spyOn(gameRepository, 'create');
       jest
-        .spyOn(gameRepository, 'create')
-        .mockImplementation(() => expect.anything());
-      gameService.createGame();
+        .spyOn(prisma.game, 'create')
+        .mockResolvedValueOnce(expect.anything());
+
+      await gameService.createGame();
 
       expect(gameRepository.create).toBeCalled();
     });
@@ -41,9 +44,7 @@ describe('GameService', () => {
           created_at: expect.any(Date),
         };
 
-        jest
-          .spyOn(gameRepository, 'create')
-          .mockImplementation(async () => game);
+        jest.spyOn(prisma.game, 'create').mockResolvedValueOnce(game);
 
         const result = await gameService.createGame();
         const expectedResult = game;
@@ -54,7 +55,7 @@ describe('GameService', () => {
 
     describe('AND cannot create new game', () => {
       it('SHOULD return a HttpException', async () => {
-        jest.spyOn(gameRepository, 'create').mockImplementation(null);
+        jest.spyOn(prisma.game, 'create').mockRejectedValueOnce(null);
 
         const result = await gameService.createGame();
         const expectedResult = new HttpException(
@@ -69,9 +70,10 @@ describe('GameService', () => {
 
   describe('WHEN called getGameById', () => {
     it('SHOULD called GameRepository.getById', () => {
+      jest.spyOn(gameRepository, 'getById');
       jest
-        .spyOn(gameRepository, 'getById')
-        .mockImplementation(async () => expect.anything());
+        .spyOn(prisma.game, 'findFirst')
+        .mockResolvedValueOnce(expect.anything());
 
       gameService.getGameById('');
 
@@ -87,9 +89,8 @@ describe('GameService', () => {
           created_at: expect.any(Date),
         };
 
-        jest
-          .spyOn(gameRepository, 'getById')
-          .mockImplementation(async () => game);
+        jest.spyOn(gameRepository, 'getById');
+        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(game);
 
         const result = await gameService.getGameById(expect.any(String));
         const expectedResult = game;
@@ -100,9 +101,8 @@ describe('GameService', () => {
 
     describe('AND cannot game found', () => {
       it('SHOULD return a HttpException', async () => {
-        jest
-          .spyOn(gameRepository, 'getById')
-          .mockImplementation(async () => null);
+        jest.spyOn(gameRepository, 'getById');
+        jest.spyOn(prisma.game, 'findFirst').mockRejectedValueOnce(null);
 
         const result = await gameService.getGameById(expect.any(String));
         const expectedResult = new HttpException(
