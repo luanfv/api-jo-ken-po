@@ -43,7 +43,7 @@ class PlayerRepository {
         },
       });
     } catch {
-      return [];
+      return null;
     }
   }
 

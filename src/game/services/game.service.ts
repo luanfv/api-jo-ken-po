@@ -40,6 +40,10 @@ class GameService {
   async addPlayerInGame(gameId: string, username: string) {
     const players = await this.playerRepository.getByGameId(gameId);
 
+    if (!Array.isArray(players)) {
+      return new HttpException('Game not found', HttpStatus.NOT_FOUND);
+    }
+
     if (players.length > 1) {
       return new HttpException(
         'Game already has enough players',

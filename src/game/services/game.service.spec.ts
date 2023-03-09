@@ -3,12 +3,13 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 
 import { GameService } from './game.service';
 import { GameRepository, Game } from '../repositories/game.repository';
-import { PlayerRepository } from '../repositories/player.repository';
+import { PlayerRepository, Player } from '../repositories/player.repository';
 import { prisma } from '../../databases/prisma';
 
 describe('GameService', () => {
   let gameService: GameService;
   let gameRepository: GameRepository;
+  let playerRepository: PlayerRepository;
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -17,6 +18,7 @@ describe('GameService', () => {
 
     gameService = moduleRef.get<GameService>(GameService);
     gameRepository = moduleRef.get<GameRepository>(GameRepository);
+    playerRepository = moduleRef.get<PlayerRepository>(PlayerRepository);
   });
 
   afterEach(() => {
@@ -116,16 +118,50 @@ describe('GameService', () => {
   });
 
   describe('WHEN called addPlayerInGame', () => {
-    it('SHOULD called GameRepository.getById', () => {});
+    it('SHOULD called GameRepository.getById', async () => {
+      jest.spyOn(playerRepository, 'getByGameId');
+      jest
+        .spyOn(prisma.player, 'findMany')
+        .mockResolvedValueOnce(expect.anything());
+
+      await gameService.addPlayerInGame('', '');
+
+      expect(playerRepository.getByGameId).toBeCalled();
+    });
 
     describe('AND game not found', () => {
-      it('SHOULD return instance of HttpException', () => {});
+      it('SHOULD return a HttpException', async () => {
+        jest.spyOn(prisma.player, 'findMany').mockRejectedValueOnce(null);
 
-      it('SHOULD return message = "Game not found" AND http status = NOT FOUND', () => {});
+        const result = await gameService.addPlayerInGame('', '');
+        const expectedResult = new HttpException(
+          'Game not found',
+          HttpStatus.NOT_FOUND,
+        );
+
+        expect(result).toEqual(expectedResult);
+      });
     });
 
     describe('AND player 1 is not registered', () => {
-      it('SHOULD register AND return new player 1', () => {});
+      it('SHOULD register AND return new player 1', async () => {
+        const player: Player = {
+          created_at: expect.any(Date),
+          game_id: expect.any(String),
+          id: expect.any(String),
+          pick: expect.any(String),
+          username: expect.any(String),
+        };
+
+        jest.spyOn(prisma.player, 'findMany').mockResolvedValueOnce([]);
+        jest
+          .spyOn(prisma.player, 'create')
+          .mockResolvedValueOnce(expect.any(player));
+
+        const result = await gameService.addPlayerInGame('', '');
+
+        expect(result).toEqual(player);
+      });
     });
 
     describe('AND username player 1 already exists', () => {
