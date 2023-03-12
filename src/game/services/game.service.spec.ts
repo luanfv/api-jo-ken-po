@@ -143,6 +143,63 @@ describe('GameService', () => {
       });
     });
 
+    describe('AND fame already has enough players', () => {
+      it('SHOULD return a HttpException', async () => {
+        const existingPlayers: Player[] = [
+          {
+            created_at: expect.any(Date),
+            game_id: expect.any(String),
+            id: expect.any(String),
+            pick: expect.any(String),
+            username: 'player1',
+          },
+          {
+            created_at: expect.any(Date),
+            game_id: expect.any(String),
+            id: expect.any(String),
+            pick: expect.any(String),
+            username: 'player2',
+          },
+        ];
+
+        jest
+          .spyOn(prisma.player, 'findMany')
+          .mockResolvedValueOnce(existingPlayers);
+
+        const result = await gameService.addPlayerInGame('', 'player3');
+        const expectedResult = new HttpException(
+          'Game already has enough players',
+          HttpStatus.BAD_REQUEST,
+        );
+
+        expect(result).toEqual(expectedResult);
+      });
+    });
+
+    describe('AND username player 1 already exists', () => {
+      it('SHOULD return a HttpException', async () => {
+        const existingPlayer: Player = {
+          created_at: expect.any(Date),
+          game_id: expect.any(String),
+          id: expect.any(String),
+          pick: expect.any(String),
+          username: 'player1',
+        };
+
+        jest
+          .spyOn(prisma.player, 'findMany')
+          .mockResolvedValueOnce([existingPlayer]);
+
+        const result = await gameService.addPlayerInGame('', 'player1');
+        const expectedResult = new HttpException(
+          'Player already exists',
+          HttpStatus.CONFLICT,
+        );
+
+        expect(result).toEqual(expectedResult);
+      });
+    });
+
     describe('AND player 1 is not registered', () => {
       it('SHOULD register AND return new player 1', async () => {
         const player: Player = {
@@ -154,9 +211,7 @@ describe('GameService', () => {
         };
 
         jest.spyOn(prisma.player, 'findMany').mockResolvedValueOnce([]);
-        jest
-          .spyOn(prisma.player, 'create')
-          .mockResolvedValueOnce(expect.any(player));
+        jest.spyOn(prisma.player, 'create').mockResolvedValueOnce(player);
 
         const result = await gameService.addPlayerInGame('', '');
 
@@ -164,20 +219,51 @@ describe('GameService', () => {
       });
     });
 
-    describe('AND username player 1 already exists', () => {
-      it('SHOULD return instance of HttpException', () => {});
+    describe('AND cannot create player', () => {
+      it('SHOULD return a HttpException', async () => {
+        jest.spyOn(prisma.player, 'findMany').mockResolvedValueOnce([]);
+        jest.spyOn(prisma.player, 'create').mockRejectedValueOnce(null);
 
-      it('SHOULD return message = "Player already exists" AND http status = CONFLICT', () => {});
+        const result = await gameService.addPlayerInGame('', '');
+        const expectedResult = new HttpException(
+          'Internal server error in create player',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+
+        expect(result).toEqual(expectedResult);
+      });
     });
 
     describe('AND player 1 is registered', () => {
-      it('SHOULD register AND return new player 2', () => {});
-    });
+      it('SHOULD return new player 2', async () => {
+        const existingPlayer: Player = {
+          created_at: expect.any(Date),
+          game_id: expect.any(String),
+          id: expect.any(String),
+          pick: expect.any(String),
+          username: 'player1',
+        };
+        jest
+          .spyOn(prisma.player, 'findMany')
+          .mockResolvedValueOnce([existingPlayer]);
 
-    describe('AND fame already has enough players', () => {
-      it('SHOULD return instance of HttpException', () => {});
+        const newPlayerName = 'player2';
+        const newPlayer: Player = {
+          created_at: expect.any(Date),
+          game_id: expect.any(String),
+          id: expect.any(String),
+          pick: expect.any(String),
+          username: newPlayerName,
+        };
+        jest.spyOn(prisma.player, 'create').mockResolvedValueOnce(newPlayer);
 
-      it('SHOULD return message = "Game already has enough players" AND http status = BAD REQUEST', () => {});
+        const result = (await gameService.addPlayerInGame(
+          '',
+          newPlayerName,
+        )) as Player;
+
+        expect(result.username).toEqual(newPlayerName);
+      });
     });
   });
 

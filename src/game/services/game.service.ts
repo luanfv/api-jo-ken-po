@@ -55,7 +55,7 @@ class GameService {
       return new HttpException('Player already exists', HttpStatus.CONFLICT);
     }
 
-    const createdPlayer = this.playerRepository.create(gameId, username);
+    const createdPlayer = await this.playerRepository.create(gameId, username);
 
     if (!createdPlayer) {
       return new HttpException(
