@@ -84,7 +84,7 @@ class GameService {
     );
 
     if (!existingPlayer) {
-      return new HttpException('Game not found', HttpStatus.NOT_FOUND);
+      return new HttpException('Player not found', HttpStatus.NOT_FOUND);
     }
 
     const updatedPlayer = await this.playerRepository.setPickById(

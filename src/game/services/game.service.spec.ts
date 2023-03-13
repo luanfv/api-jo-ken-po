@@ -268,73 +268,132 @@ describe('GameService', () => {
   });
 
   describe('WHEN called playerPick', () => {
-    it('SHOULD called GameRepository.getById', () => {});
+    it('SHOULD called GameRepository.getById', async () => {
+      jest.spyOn(gameRepository, 'getById');
+      jest.spyOn(prisma.game, 'findFirst').mockRejectedValueOnce(null);
+
+      await gameService.playerPick('', '', 'JO');
+
+      expect(gameRepository.getById).toBeCalled();
+    });
 
     describe('AND game not found', () => {
-      it('SHOULD return instance of HttpException', () => {});
+      it('SHOULD return a HttpException', async () => {
+        jest.spyOn(prisma.game, 'findFirst').mockRejectedValueOnce(null);
 
-      it('SHOULD return message = "Game not found" AND http status = NOT FOUND', () => {});
+        const result = await gameService.playerPick('', '', 'JO');
+        const expectedResult = new HttpException(
+          'Game not found',
+          HttpStatus.NOT_FOUND,
+        );
+
+        expect(result).toEqual(expectedResult);
+      });
     });
 
     describe('AND game over', () => {
-      it('SHOULD return instance of HttpException', () => {});
+      it('SHOULD return a HttpException', async () => {
+        const game: Game = {
+          created_at: expect.any(Date),
+          id: expect.any(String),
+          winner_id: expect.any(String),
+          is_game_over: true,
+        };
 
-      it('SHOULD return message = "Game over" AND http status = BAD REQUEST', () => {});
+        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(game);
+
+        const result = await gameService.playerPick('', '', 'JO');
+        const expectedResult = new HttpException(
+          'Game over',
+          HttpStatus.NOT_FOUND,
+        );
+
+        expect(result).toEqual(expectedResult);
+      });
     });
 
     describe('AND player not found', () => {
-      it('SHOULD return instance of HttpException', () => {});
+      it('SHOULD return a HttpException', async () => {
+        const game: Game = {
+          created_at: expect.any(Date),
+          id: expect.any(String),
+          winner_id: expect.any(String),
+          is_game_over: false,
+        };
 
-      it('SHOULD return message = "Player not found" AND http status = NOT FOUND', () => {});
-    });
+        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(game);
+        jest.spyOn(prisma.player, 'findFirst').mockRejectedValueOnce(null);
 
-    describe('AND player 1 pick', () => {
-      it('SHOULD called Game.playerPick', () => {});
-
-      it('SHOULD change player pick AND return game', () => {});
-    });
-
-    describe('AND player 2 pick', () => {
-      it('SHOULD called Game.playerPick', () => {});
-
-      it('SHOULD change player pick AND return game', () => {});
-    });
-
-    describe('AND all player pick', () => {
-      describe('AND a tie game', () => {
-        it.each`
-          player1Pick | player2Pick
-          ${'JO'}     | ${'JO'}
-          ${'KEN'}    | ${'KEN'}
-          ${'PO'}     | ${'PO'}
-        `(
-          'SHOULD return game (player1 = $player1Pick and player2 = $player2Pick)',
-          ({ player1Pick, player2Pick }) => {},
+        const result = await gameService.playerPick('', '', 'JO');
+        const expectedResult = new HttpException(
+          'Player not found',
+          HttpStatus.NOT_FOUND,
         );
+
+        expect(result).toEqual(expectedResult);
       });
+    });
 
-      describe('AND player 1 wins', () => {
-        it.each`
-          player1Pick | player2Pick
-          ${'JO'}     | ${'PO'}
-          ${'KEN'}    | ${'JO'}
-          ${'PO'}     | ${'KEN'}
-        `(
-          'SHOULD game over and return game (player1 = $player1Pick and player2 = $player2Pick)',
-          ({ player1Pick, player2Pick }) => {},
+    describe('AND cannot set pick', () => {
+      it('SHOULD return a HttpException', async () => {
+        const game: Game = {
+          created_at: expect.any(Date),
+          id: expect.any(String),
+          winner_id: expect.any(String),
+          is_game_over: false,
+        };
+        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(game);
+
+        const player: Player = {
+          created_at: expect.any(Date),
+          id: expect.any(String),
+          game_id: expect.any(String),
+          pick: expect.any(String),
+          username: expect.any(String),
+        };
+        jest.spyOn(prisma.player, 'findFirst').mockResolvedValueOnce(player);
+
+        jest.spyOn(prisma.player, 'update').mockRejectedValueOnce(null);
+
+        const result = await gameService.playerPick('', '', 'JO');
+        const expectedResult = new HttpException(
+          'Internal server error in set player pick',
+          HttpStatus.NOT_FOUND,
         );
+
+        expect(result).toEqual(expectedResult);
       });
+    });
 
-      describe('AND player 2 wins', () => {
-        it.each`
-          player2Pick | player1Pick
-          ${'JO'}     | ${'PO'}
-          ${'KEN'}    | ${'JO'}
-          ${'PO'}     | ${'KEN'}
-        `(
-          'SHOULD game over and return game (player1 = $player1Pick and player2 = $player2Pick)',
-          ({ player1Pick, player2Pick }) => {},
-        );
+    describe('AND return player set pick', () => {
+      it('SHOULD return updated player', async () => {
+        jest.spyOn(gameRepository, 'getById');
+
+        const game: Game = {
+          created_at: expect.any(Date),
+          id: expect.any(String),
+          winner_id: expect.any(String),
+          is_game_over: false,
+        };
+        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(game);
+
+        const player: Player = {
+          created_at: expect.any(Date),
+          id: expect.any(String),
+          game_id: expect.any(String),
+          pick: 'KEN',
+          username: expect.any(String),
+        };
+        jest.spyOn(prisma.player, 'findFirst').mockResolvedValueOnce(player);
+
+        jest
+          .spyOn(prisma.player, 'update')
+          .mockResolvedValueOnce({ ...player, pick: 'KEN' });
+
+        const result = await gameService.playerPick('', '', 'JO');
+        const expectedResult: Player = { ...player, pick: 'KEN' };
+
+        expect(result).toEqual(expectedResult);
       });
     });
   });
