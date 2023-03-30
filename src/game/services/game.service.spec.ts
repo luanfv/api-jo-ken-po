@@ -399,22 +399,47 @@ describe('GameService', () => {
   });
 
   describe('WHEN called restartGame', () => {
-    it('SHOULD called GameRepository.getById', () => {});
+    it('SHOULD called GameRepository.getById', async () => {
+      jest.spyOn(gameRepository, 'restartById');
+      jest.spyOn(prisma.game, 'update').mockRejectedValueOnce(null);
+
+      await gameService.restartGame('');
+
+      expect(gameRepository.restartById).toBeCalled();
+    });
 
     describe('AND game not found', () => {
-      it('SHOULD return instance of HttpException', () => {});
+      it('SHOULD return instance of HttpException', async () => {
+        jest.spyOn(gameRepository, 'restartById');
+        jest.spyOn(prisma.game, 'update').mockRejectedValueOnce(null);
 
-      it('SHOULD return message = "Game not found" AND http status = NOT FOUND', () => {});
+        const result = await gameService.restartGame('');
+        const expectedResult = new HttpException(
+          'Internal server error in restart game',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+
+        expect(result).toEqual(expectedResult);
+      });
     });
 
     describe('AND reset game', () => {
-      it('SHOULD change isGamOver to false', () => {});
+      it('SHOULD change isGamOver to false', async () => {
+        const mockGame: Game = {
+          created_at: expect.any(Date),
+          id: expect.any(String),
+          is_game_over: false,
+          winner_id: null,
+        };
 
-      it('SHOULD change player1.pick and player2.pick to undefined', () => {});
+        jest.spyOn(gameRepository, 'restartById');
+        jest.spyOn(prisma.game, 'update').mockResolvedValueOnce(mockGame);
 
-      it('SHOULD change winner to undefined', () => {});
+        const result = await gameService.restartGame('');
+        const expectedResult = mockGame;
 
-      it('SHOULD return game', () => {});
+        expect(result).toEqual(expectedResult);
+      });
     });
   });
 });
