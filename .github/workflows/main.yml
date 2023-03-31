@@ -1,7 +1,6 @@
 name: Build and Deploy to PRD
 
 on:
-  workflow_dispatch:
   push:
     branches: ["master"]
 
