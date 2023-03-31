@@ -10,40 +10,18 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 
-import { PlayerPickJoKenPoDTO } from './dto/playerPickJoKenPo.dto';
-import { AddPlayerInGameDTO } from './dto/addPlayerInGame.dto';
-import { GameService } from './game.service';
+import { PlayerPickDTO } from '../dtos/playerPick.dto';
+import { AddPlayerInGameDTO } from '../dtos/addPlayerInGame.dto';
+import { GameService } from '../services/game.service';
 
 @Controller('/games')
 class GameController {
   constructor(private gameService: GameService) {}
 
   @Post()
-  createGame() {
+  async createGame() {
     try {
-      const response = this.gameService.createGame();
-
-      if (response instanceof HttpException) {
-        throw response;
-      }
-
-      return response;
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw err;
-      }
-
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @Get()
-  getAllGames() {
-    try {
-      const response = this.gameService.getAllGames();
+      const response = await this.gameService.createGame();
 
       if (response instanceof HttpException) {
         throw response;
@@ -63,9 +41,9 @@ class GameController {
   }
 
   @Get('/:gameId')
-  getGameById(@Param('gameId') gameId: string) {
+  async getGameById(@Param('gameId') gameId: string) {
     try {
-      const response = this.gameService.getGameById(gameId);
+      const response = await this.gameService.getGameById(gameId);
 
       if (response instanceof HttpException) {
         throw response;
@@ -85,9 +63,25 @@ class GameController {
   }
 
   @Put('/:gameId/restart')
-  restartGame(@Param('gameId') gameId: string) {
+  async restartGame(@Param('gameId') gameId: string) {
     try {
-      const response = this.gameService.restartGame(gameId);
+      return await this.gameService.restartGame(gameId);
+    } catch (err) {
+      if (err instanceof HttpException) {
+        throw err;
+      }
+
+      throw new HttpException(
+        'Internal server error',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Put('/:gameId/finish')
+  async finishGame(@Param('gameId') gameId: string) {
+    try {
+      const response = await this.gameService.finishGame(gameId);
 
       if (response instanceof HttpException) {
         throw response;
@@ -107,12 +101,15 @@ class GameController {
   }
 
   @Post('/:gameId/player')
-  addPlayerInGame(
+  async addPlayerInGame(
     @Param('gameId') gameId: string,
     @Body() body: AddPlayerInGameDTO,
   ) {
     try {
-      const response = this.gameService.addPlayerInGame(gameId, body.username);
+      const response = await this.gameService.addPlayerInGame(
+        gameId,
+        body.username,
+      );
 
       if (response instanceof HttpException) {
         throw response;
@@ -132,13 +129,13 @@ class GameController {
   }
 
   @Patch('/:gameId/player/:playerUsername')
-  playerPickJoKenPo(
+  async playerPick(
     @Param('gameId') gameId: string,
     @Param('playerUsername') playerUsername: string,
-    @Body() body: PlayerPickJoKenPoDTO,
+    @Body() body: PlayerPickDTO,
   ) {
     try {
-      const response = this.gameService.playerPickJoKenPo(
+      const response = await this.gameService.playerPick(
         gameId,
         playerUsername,
         body.pick,
