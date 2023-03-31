@@ -1,4 +1,4 @@
-name: Build and Deploy the project
+name: Build and Deploy to PRD
 
 on:
   push:
