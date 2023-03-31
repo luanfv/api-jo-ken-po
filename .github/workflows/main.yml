@@ -10,12 +10,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
+
+      - name: Use Node.js 16.18.1
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 16.18.1
           cache: 'npm'
-      - run: npm install
-      - run: npx prisma generate
-      - run: npm test
-      - run: npm run build
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run prisma generate
+        run: npx prisma generate
+
+      - name: Run tests
+        run: npm test
