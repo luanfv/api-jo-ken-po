@@ -25,8 +25,8 @@ describe('GameService', () => {
     jest.clearAllMocks();
   });
 
-  describe('WHEN called createGame', () => {
-    it('SHOULD called GameRepository.create', async () => {
+  describe('WHEN call createGame', () => {
+    it('SHOULD call GameRepository.create', async () => {
       jest.spyOn(gameRepository, 'create');
       jest
         .spyOn(prisma.game, 'create')
@@ -70,8 +70,8 @@ describe('GameService', () => {
     });
   });
 
-  describe('WHEN called getGameById', () => {
-    it('SHOULD called GameRepository.getById', () => {
+  describe('WHEN call getGameById', () => {
+    it('SHOULD call GameRepository.getById', () => {
       jest.spyOn(gameRepository, 'getById');
       jest
         .spyOn(prisma.game, 'findFirst')
@@ -117,8 +117,8 @@ describe('GameService', () => {
     });
   });
 
-  describe('WHEN called addPlayerInGame', () => {
-    it('SHOULD called GameRepository.getById', async () => {
+  describe('WHEN call addPlayerInGame', () => {
+    it('SHOULD call GameRepository.getById', async () => {
       jest.spyOn(playerRepository, 'getByGameId');
       jest
         .spyOn(prisma.player, 'findMany')
@@ -267,8 +267,8 @@ describe('GameService', () => {
     });
   });
 
-  describe('WHEN called playerPick', () => {
-    it('SHOULD called GameRepository.getById', async () => {
+  describe('WHEN call playerPick', () => {
+    it('SHOULD call GameRepository.getById', async () => {
       jest.spyOn(gameRepository, 'getById');
       jest.spyOn(prisma.game, 'findFirst').mockRejectedValueOnce(null);
 
@@ -398,8 +398,8 @@ describe('GameService', () => {
     });
   });
 
-  describe('WHEN called restartGame', () => {
-    it('SHOULD called GameRepository.getById', async () => {
+  describe('WHEN call restartGame', () => {
+    it('SHOULD call GameRepository.getById', async () => {
       jest.spyOn(gameRepository, 'restartById');
       jest.spyOn(prisma.game, 'update').mockRejectedValueOnce(null);
 
@@ -443,8 +443,8 @@ describe('GameService', () => {
     });
   });
 
-  describe('WHEN called finishGame', () => {
-    it('SHOULD called GameRepository.getById', async () => {
+  describe('WHEN call finishGame', () => {
+    it('SHOULD call GameRepository.getById', async () => {
       jest.spyOn(gameRepository, 'getById');
       jest.spyOn(prisma.game, 'findFirst').mockRejectedValueOnce(null);
 
@@ -491,7 +491,7 @@ describe('GameService', () => {
     });
 
     describe('AND not have two players', () => {
-      it('SHOULD called PlayerRepository.getByGameId', async () => {
+      it('SHOULD call PlayerRepository.getByGameId', async () => {
         const mockGame: Game = {
           id: expect.any(String),
           created_at: expect.any(Date),
@@ -657,7 +657,7 @@ describe('GameService', () => {
         expect(result).toEqual(expectedResult);
       });
 
-      it('SHOULD called GameRepository.setWinnerById', async () => {
+      it('SHOULD call GameRepository.setWinnerById', async () => {
         const mockGame: Game = {
           id: expect.any(String),
           created_at: expect.any(Date),
