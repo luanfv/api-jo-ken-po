@@ -25,3 +25,12 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy API in Render
+        uses: wei/curl@v1
+        with:
+          args: -X GET ${{ secrets.RENDER_DEPLOY_HOOK }}
