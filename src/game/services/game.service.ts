@@ -151,7 +151,7 @@ class GameService {
 
     const players = await this.playerRepository.getByGameId(gameId);
 
-    if (!players[0] || !players[1]) {
+    if (!Array.isArray(players) || !players[0] || !players[1]) {
       return new HttpException('Not enough players', HttpStatus.BAD_REQUEST);
     }
 
