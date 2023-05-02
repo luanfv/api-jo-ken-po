@@ -15,7 +15,7 @@ jobs:
       - name: Use Node.js 18.9.0
         uses: actions/setup-node@v3
         with:
-          node-version: 16.18.1
+          node-version: 18.9.0
           cache: 'npm'
 
       - name: Install dependencies
@@ -26,9 +26,6 @@ jobs:
 
       - name: Run tests
         run: npm test
-
-      - name: Run prisma migrate
-        run: npx prisma migrate deploy
 
   deploy:
     needs: build
