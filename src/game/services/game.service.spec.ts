@@ -709,7 +709,7 @@ describe('GameService', () => {
         ${'JO'}  | ${'JO'}  | ${null}
         ${'KEN'} | ${'KEN'} | ${null}
       `(
-        'SHOULD return the game with  as the winner (player1 = $player1 and player2 = $player2)',
+        'SHOULD return the game with $winner as the winner (player1 = $player1 and player2 = $player2)',
         async ({ player1, player2, winner }) => {
           const mockGame: Game = {
             id: expect.any(String),

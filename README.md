@@ -12,14 +12,22 @@ $ npm install
 
 ## Running the app
 
+You need create a copy of the file `.env.example` in the project root and rename to `.env` with your env variables.
+
+### DEV
+
+You need have install [docker](https://docs.docker.com/engine/install/) and [docker-compose](https://docs.docker.com/compose/install/) to up postgres database.
+If is installed, you need setting value of the env variable `DATABASE_URL` in the .env to `postgresql://postgres:postgres@localhost:5432/postgres?schema=public`. Obs: you don't edit docker-compose.yaml to it working.
+
 ```bash
-# development
-$ npm run start
-
-# watch mode
+# run to start project in watch mode
 $ npm run start:dev
+```
 
-# production mode
+### PROD
+
+```bash
+# run to start project in production mode
 $ npm run start:prod
 ```
 
