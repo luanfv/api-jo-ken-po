@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    timeout-minutes: 10
     runs-on: ubuntu-latest
 
     steps:
@@ -19,13 +20,29 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Start postgres container
+        run: docker-compose up -d postgres
+
+      - name: Create .env
+        run: cat .env.example > .env
 
       - name: Run prisma generate
         run: npx prisma generate
 
+      - name: Run pisma migrate
+        run: npx prisma migrate deploy
+
       - name: Run tests
         run: npm test
+
+      - name: Run build
+        run: npm run build
+
+      - name: Stop postgres container
+        if: always()
+        run: docker-compose -f down
 
   deploy:
     needs: build
