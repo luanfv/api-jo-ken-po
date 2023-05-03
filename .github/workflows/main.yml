@@ -49,7 +49,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Deploy API in Render
-        uses: wei/curl@v1
+      - name: Wait for Render Deployment
+        uses: bounceapp/render-action@0.6.0
         with:
-          args: -X GET ${{ secrets.RENDER_DEPLOY_HOOK }}
+          render-token: ${{ secrets.RENDER_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          service-id: ${{ secrets.RENDER_SERVICE_ID }}
