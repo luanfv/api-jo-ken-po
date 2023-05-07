@@ -1,4 +1,4 @@
-name: Build and Deploy to PRD
+name: Run tests and build and deploy to PRD
 
 on:
   workflow_dispatch:
@@ -6,7 +6,8 @@ on:
     branches: ["master"]
 
 jobs:
-  build:
+  testsAndBuild:
+    name: Run tests and build
     timeout-minutes: 10
     runs-on: ubuntu-latest
 
@@ -23,7 +24,10 @@ jobs:
         run: npm ci
 
       - name: Start postgres container
-        run: docker-compose up -d postgres
+        run: docker-compose up -d
+
+      - name: Sleep to 5 seconds
+        run: sleep 5
 
       - name: Create .env
         run: cat .env.example > .env
@@ -34,8 +38,11 @@ jobs:
       - name: Run pisma migrate
         run: npx prisma migrate deploy
 
-      - name: Run tests
+      - name: Run unit tests
         run: npm test
+
+      - name: Run integration tests
+        run: npm run test-integration
 
       - name: Run build
         run: npm run build
@@ -45,8 +52,9 @@ jobs:
         run: docker-compose -f down
 
   deploy:
-    needs: build
+    needs: testsAndBuild
     runs-on: ubuntu-latest
+    name: Deploy to Render
 
     steps:
       - name: Deploy API in Render
