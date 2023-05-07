@@ -23,7 +23,7 @@ jobs:
         run: npm ci
 
       - name: Start postgres container
-        run: docker-compose up -d postgres
+        run: docker-compose up -d && sleep 5
 
       - name: Create .env
         run: cat .env.example > .env

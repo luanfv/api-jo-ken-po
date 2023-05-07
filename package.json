@@ -14,7 +14,7 @@
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest --config ./tests/jest.json",
-    "test-integration": "docker-compose up postgres-test && sleep 5 && echo 'DATABASE_URL=\"postgresql://postgres:postgres@localhost:5433/postgres?schema=public\"' > .env.test && dotenv -e .env.test npx prisma migrate dev && jest --config ./tests/jest-integration.json && docker kill jo-ken-po-db-test && docker rm jo-ken-po-db-test && rm .env.test",
+    "test-integration": "echo 'DATABASE_URL=\"postgresql://postgres:postgres@localhost:5433/postgres?schema=public\"' > .env.test && dotenv -e .env.test npx prisma migrate dev && jest --config ./tests/jest-integration.json && docker kill jo-ken-po-db-test && docker rm jo-ken-po-db-test && rm .env.test",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
