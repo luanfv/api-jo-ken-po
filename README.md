@@ -33,8 +33,10 @@ $ npm run start:prod
 
 ## Test
 
+### Unit tests
+
 ```bash
-# unit tests
+# run
 $ npm run test
 
 # e2e tests
@@ -42,4 +44,13 @@ $ npm run test:e2e
 
 # test coverage
 $ npm run test:cov
+```
+
+### Integration tests
+
+You need have install [docker](https://docs.docker.com/engine/install/) and [docker-compose](https://docs.docker.com/compose/install/) to up postgres database.
+
+```bash
+# run
+$ npm run test-integration:db && npm run test-integration
 ```
