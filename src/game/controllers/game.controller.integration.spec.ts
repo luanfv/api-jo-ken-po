@@ -1,4 +1,4 @@
-import { INestApplication } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 
@@ -27,7 +27,7 @@ describe('GameController (Integration)', () => {
 
         const result = await request(app.getHttpServer())
           .get(`/games/${foundGame.id}`)
-          .expect(200);
+          .expect(HttpStatus.OK);
 
         expect(result.body).toEqual({
           id: foundGame.id,
@@ -40,7 +40,36 @@ describe('GameController (Integration)', () => {
 
     describe('WHEN not find the game', () => {
       it('SHOULD return NOT FOUND', async () => {
-        await request(app.getHttpServer()).get('/games/id-invalid').expect(404);
+        await request(app.getHttpServer())
+          .get('/games/id-invalid')
+          .expect(HttpStatus.NOT_FOUND);
+      });
+    });
+  });
+
+  describe('PUT /games/:gameId/restart', () => {
+    describe('WHEN can restart the game', () => {
+      it('SHOULD return OK with the game updated', async () => {
+        const foundGame = await gameRepository.create();
+
+        const result = await request(app.getHttpServer())
+          .put(`/games/${foundGame.id}/restart`)
+          .expect(HttpStatus.OK);
+
+        expect(result.body).toEqual({
+          id: foundGame.id,
+          is_game_over: foundGame.is_game_over,
+          winner_id: foundGame.winner_id,
+          created_at: expect.anything(),
+        });
+      });
+    });
+
+    describe('WHEN cannot restart the game', () => {
+      it('SHOULD return NOT FOUND', async () => {
+        await request(app.getHttpServer())
+          .put('/games/id-invalid/restart')
+          .expect(HttpStatus.NOT_FOUND);
       });
     });
   });

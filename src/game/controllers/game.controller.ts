@@ -65,7 +65,13 @@ class GameController {
   @Put('/:gameId/restart')
   async restartGame(@Param('gameId') gameId: string) {
     try {
-      return await this.gameService.restartGame(gameId);
+      const response = await this.gameService.restartGame(gameId);
+
+      if (response instanceof HttpException) {
+        throw response;
+      }
+
+      return response;
     } catch (err) {
       if (err instanceof HttpException) {
         throw err;

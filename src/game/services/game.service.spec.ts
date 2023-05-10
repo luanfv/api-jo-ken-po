@@ -415,8 +415,8 @@ describe('GameService', () => {
 
         const result = await gameService.restartGame('');
         const expectedResult = new HttpException(
-          'Internal server error in restart game',
-          HttpStatus.INTERNAL_SERVER_ERROR,
+          'Game is not found',
+          HttpStatus.NOT_FOUND,
         );
 
         expect(result).toEqual(expectedResult);
