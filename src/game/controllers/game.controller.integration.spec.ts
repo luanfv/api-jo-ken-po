@@ -20,6 +20,23 @@ describe('GameController (Integration)', () => {
     gameRepository = module.get<GameRepository>(GameRepository);
   });
 
+  describe('POST /games', () => {
+    describe('WHEN can create new game', () => {
+      it('SHOULD return CREATED with new game', async () => {
+        const result = await request(app.getHttpServer())
+          .post('/games')
+          .expect(HttpStatus.CREATED);
+
+        expect(result.body).toEqual({
+          id: expect.anything(),
+          is_game_over: false,
+          winner_id: null,
+          created_at: expect.anything(),
+        });
+      });
+    });
+  });
+
   describe('GET /games/:gameId', () => {
     describe('WHEN find the game', () => {
       it('SHOULD return OK with the game', async () => {
