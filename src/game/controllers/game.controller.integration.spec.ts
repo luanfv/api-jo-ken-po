@@ -1,24 +1,46 @@
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
+import { v4 as uuid } from 'uuid';
 
 import { GameModule } from '../game.module';
-import { GameRepository } from '../repositories/game.repository';
+import { Game } from '../repositories/game.repository';
 import { prisma } from '../../databases/prisma';
 
 describe('GameController (Integration)', () => {
   let app: INestApplication;
-  let gameRepository: GameRepository;
+  let gameToTest: Game;
 
-  beforeEach(async () => {
+  beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [GameModule],
     }).compile();
 
     app = module.createNestApplication();
     await app.init();
+  });
 
-    gameRepository = module.get<GameRepository>(GameRepository);
+  beforeEach(async () => {
+    gameToTest = await prisma.game.create({
+      data: {
+        id: uuid(),
+        is_game_over: false,
+      },
+    });
+  });
+
+  afterEach(async () => {
+    await prisma.player.deleteMany({
+      where: {
+        game_id: gameToTest.id,
+      },
+    });
+
+    await prisma.game.deleteMany({
+      where: {
+        id: gameToTest.id,
+      },
+    });
   });
 
   describe('POST /games', () => {
@@ -41,16 +63,14 @@ describe('GameController (Integration)', () => {
   describe('GET /games/:gameId', () => {
     describe('WHEN find the game', () => {
       it('SHOULD return OK with the game', async () => {
-        const foundGame = await gameRepository.create();
-
         const result = await request(app.getHttpServer())
-          .get(`/games/${foundGame.id}`)
+          .get(`/games/${gameToTest.id}`)
           .expect(HttpStatus.OK);
 
         expect(result.body).toEqual({
-          id: foundGame.id,
-          is_game_over: foundGame.is_game_over,
-          winner_id: foundGame.winner_id,
+          id: gameToTest.id,
+          is_game_over: gameToTest.is_game_over,
+          winner_id: gameToTest.winner_id,
           created_at: expect.anything(),
         });
       });
@@ -68,16 +88,14 @@ describe('GameController (Integration)', () => {
   describe('PUT /games/:gameId/restart', () => {
     describe('WHEN can restart the game', () => {
       it('SHOULD return OK with the game updated', async () => {
-        const foundGame = await gameRepository.create();
-
         const result = await request(app.getHttpServer())
-          .put(`/games/${foundGame.id}/restart`)
+          .put(`/games/${gameToTest.id}/restart`)
           .expect(HttpStatus.OK);
 
         expect(result.body).toEqual({
-          id: foundGame.id,
-          is_game_over: foundGame.is_game_over,
-          winner_id: foundGame.winner_id,
+          id: gameToTest.id,
+          is_game_over: gameToTest.is_game_over,
+          winner_id: gameToTest.winner_id,
           created_at: expect.anything(),
         });
       });
@@ -103,84 +121,71 @@ describe('GameController (Integration)', () => {
 
     describe('WHEN cannot finish the game because game is already finished', () => {
       it('SHOULD return BAD REQUEST', async () => {
-        const foundGame = await gameRepository.create();
-        await prisma.game.update({
-          data: {
-            is_game_over: true,
-          },
-          where: {
-            id: foundGame.id,
-          },
-        });
-
         await request(app.getHttpServer())
-          .put(`/games/${foundGame.id}/finish`)
+          .put(`/games/${gameToTest.id}/finish`)
           .expect(HttpStatus.BAD_REQUEST);
       });
     });
 
     describe('WHEN cannot finish the game because game not enough players', () => {
       it('SHOULD return BAD REQUEST', async () => {
-        const foundGame = await gameRepository.create();
         await request(app.getHttpServer())
-          .put(`/games/${foundGame.id}/finish`)
+          .put(`/games/${gameToTest.id}/finish`)
           .expect(HttpStatus.BAD_REQUEST);
       });
     });
 
     describe('WHEN cannot finish the game because game not all players pick', () => {
       it('SHOULD return BAD REQUEST', async () => {
-        const foundGame = await gameRepository.create();
-        await prisma.player.create({
-          data: {
-            game_id: foundGame.id,
-            username: 'Player1',
-            id: '1',
-          },
-        });
-        await prisma.player.create({
-          data: {
-            game_id: foundGame.id,
-            username: 'Player2',
-            id: '2',
-            pick: 'JO',
-          },
+        await prisma.player.createMany({
+          data: [
+            {
+              game_id: gameToTest.id,
+              username: 'Player1',
+              id: uuid(),
+            },
+            {
+              game_id: gameToTest.id,
+              username: 'Player2',
+              id: uuid(),
+              pick: 'JO',
+            },
+          ],
         });
 
         await request(app.getHttpServer())
-          .put(`/games/${foundGame.id}/finish`)
+          .put(`/games/${gameToTest.id}/finish`)
           .expect(HttpStatus.BAD_REQUEST);
       });
     });
 
     describe('WHEN can finish the game', () => {
       it('SHOULD return OK with the game', async () => {
-        const foundGame = await gameRepository.create();
-        await prisma.player.create({
-          data: {
-            game_id: foundGame.id,
-            username: 'Player1',
-            id: '3',
-            pick: 'KEN',
-          },
-        });
-        await prisma.player.create({
-          data: {
-            game_id: foundGame.id,
-            username: 'Player2',
-            id: '4',
-            pick: 'JO',
-          },
+        await prisma.player.createMany({
+          data: [
+            {
+              game_id: gameToTest.id,
+              username: 'Player1',
+              id: '1',
+              pick: 'KEN',
+            },
+            {
+              game_id: gameToTest.id,
+              username: 'Player2',
+              id: '2',
+              pick: 'JO',
+            },
+          ],
         });
 
         const result = await request(app.getHttpServer())
-          .put(`/games/${foundGame.id}/finish`)
+          .put(`/games/${gameToTest.id}/finish`)
           .expect(HttpStatus.OK);
 
         expect(result.body).toEqual({
-          id: foundGame.id,
+          id: gameToTest.id,
           is_game_over: true,
-          winner_id: '3',
+          winner_id: '1',
           created_at: expect.anything(),
         });
       });
