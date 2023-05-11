@@ -30,9 +30,9 @@ jobs:
         run: npm run test:env
 
       - name: Run prisma generate to tests
-        run: dotenv -e .env.test npx prisma generate
+        run: npx prisma generate
 
-      - name: Run pisma migrate to tests
+      - name: Run prisma migrate to tests
         run: dotenv -e .env.test npx prisma migrate dev
 
       - name: Run unit tests
