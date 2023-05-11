@@ -18,12 +18,12 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test-integration:db": "docker-compose up postgres-test -d --wait && sleep 5",
-    "test-integration:drop-db": "docker kill jo-ken-po-db-test && docker rm jo-ken-po-db-test",
-    "test-integration:env": "echo 'DATABASE_URL=\"postgresql://postgres:postgres@localhost:5433/postgres?schema=public\"' > .env.test",
-    "test-integration:drop-env": "rm .env.test",
-    "test-integration": "npm run test-integration:env && dotenv -e .env.test npx prisma migrate dev && jest --config ./tests/jest-integration.json && npm run test-integration:drop-db && npm run test-integration:drop-env",
-    "test-integration:local": "npm run test-integration:db && npm run test-integration"
+    "test:db": "docker-compose up postgres-test -d --wait && sleep 5",
+    "test:drop-db": "docker kill jo-ken-po-db-test && docker rm jo-ken-po-db-test",
+    "test:env": "echo 'DATABASE_URL=\"postgresql://postgres:postgres@localhost:5433/postgres?schema=public\"' > .env.test",
+    "test:drop-env": "rm .env.test",
+    "test:integration": "jest --config ./tests/jest-integration.json",
+    "test:integration-local": "npm run test:db && npm run test:env && dotenv -e .env.test npx prisma migrate dev && npm run test:integration && npm run test:drop-db && npm run test:drop-env"
   },
   "dependencies": {
     "@nestjs/common": "^9.0.0",

@@ -23,26 +23,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Start postgres container
-        run: docker-compose up -d
+      - name: Start postgres container to tests
+        run: npm run test:db
 
-      - name: Sleep to 5 seconds
-        run: sleep 5
+      - name: Create var env
+        run: npm run test:env
 
-      - name: Create .env
-        run: cat .env.example > .env
+      - name: Run prisma generate to tests
+        run: dotenv -e .env.test npx prisma generate
 
-      - name: Run prisma generate
-        run: npx prisma generate
-
-      - name: Run pisma migrate
-        run: npx prisma migrate deploy
+      - name: Run pisma migrate to tests
+        run: dotenv -e .env.test npx prisma migrate dev
 
       - name: Run unit tests
         run: npm test
 
       - name: Run integration tests
-        run: npm run test-integration
+        run: npm run test:integration
 
       - name: Run build
         run: npm run build
