@@ -1,4 +1,4 @@
-import { HttpStatus, INestApplication } from '@nestjs/common';
+import { HttpStatus, INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import * as request from 'supertest';
 import { v4 as uuid } from 'uuid';
@@ -17,6 +17,14 @@ describe('GameController (Integration)', () => {
     }).compile();
 
     app = module.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        transform: true,
+        whitelist: true,
+        forbidNonWhitelisted: true,
+      }),
+    );
+
     await app.init();
   });
 
@@ -186,6 +194,85 @@ describe('GameController (Integration)', () => {
           id: gameToTest.id,
           is_game_over: true,
           winner_id: '1',
+          created_at: expect.anything(),
+        });
+      });
+    });
+  });
+
+  describe('POST /games/:gameId/player', () => {
+    describe('WHEN cannot add player in the game because not receive player username', () => {
+      it('SHOULD return BAD REQUEST', async () => {
+        await request(app.getHttpServer())
+          .post('/games/id-invalid/player')
+          .expect(HttpStatus.BAD_REQUEST);
+      });
+    });
+
+    describe('WHEN cannot add player in the game because not find the game', () => {
+      it('SHOULD return NOT FOUND', async () => {
+        await request(app.getHttpServer())
+          .post('/games/id-invalid/player')
+          .send({ username: 'Player1' })
+          .expect(HttpStatus.NOT_FOUND);
+      });
+    });
+
+    describe('WHEN cannot add player in the game because already has enough players', () => {
+      it('SHOULD return BAD REQUEST', async () => {
+        await prisma.player.createMany({
+          data: [
+            {
+              game_id: gameToTest.id,
+              username: 'Player1',
+              id: uuid(),
+            },
+            {
+              game_id: gameToTest.id,
+              username: 'Player2',
+              id: uuid(),
+            },
+          ],
+        });
+
+        await request(app.getHttpServer())
+          .post(`/games/${gameToTest.id}/player`)
+          .send({ username: 'Player1' })
+          .expect(HttpStatus.BAD_REQUEST);
+      });
+    });
+
+    describe('WHEN cannot add player in the game because player already exists', () => {
+      it('SHOULD return CONFLICT', async () => {
+        await prisma.player.createMany({
+          data: [
+            {
+              game_id: gameToTest.id,
+              username: 'Player1',
+              id: uuid(),
+            },
+          ],
+        });
+
+        await request(app.getHttpServer())
+          .post(`/games/${gameToTest.id}/player`)
+          .send({ username: 'Player1' })
+          .expect(HttpStatus.CONFLICT);
+      });
+    });
+
+    describe('WHEN can add player in the game', () => {
+      it('SHOULD return CREATED with the player', async () => {
+        const result = await request(app.getHttpServer())
+          .post(`/games/${gameToTest.id}/player`)
+          .send({ username: 'Player1' })
+          .expect(HttpStatus.CREATED);
+
+        expect(result.body).toEqual({
+          id: expect.any(String),
+          game_id: gameToTest.id,
+          username: 'Player1',
+          pick: null,
           created_at: expect.anything(),
         });
       });
