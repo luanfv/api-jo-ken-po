@@ -31,19 +31,13 @@ $ npm run start:dev
 $ npm run start:prod
 ```
 
-## Test
+## Tests
 
 ### Unit tests
 
 ```bash
 # run
 $ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
 ```
 
 ### Integration tests
@@ -52,5 +46,5 @@ You need have install [docker](https://docs.docker.com/engine/install/) and [doc
 
 ```bash
 # run
-$ npm run test-integration:db && npm run test-integration
+$ npm run test:integration-local
 ```
