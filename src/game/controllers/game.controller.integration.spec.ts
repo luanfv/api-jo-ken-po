@@ -64,6 +64,12 @@ describe('GameController (Integration)', () => {
           winner_id: null,
           created_at: expect.anything(),
         });
+
+        await prisma.game.delete({
+          where: {
+            id: result.body.id,
+          },
+        });
       });
     });
   });
