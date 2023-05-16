@@ -1,4 +1,4 @@
-[![Build and Deploy to PRD](https://github.com/luanfv/api-jo-ken-po/actions/workflows/main.yml/badge.svg)](https://github.com/luanfv/api-jo-ken-po/actions/workflows/main.yml)
+[![Build and Deploy to PRD](https://github.com/luanfv/api-jo-ken-po/actions/workflows/main.yml/badge.svg)](https://github.com/luanfv/api-jo-ken-po/actions/workflows/main.yaml)
 
 ## Description
 
