@@ -4,6 +4,7 @@
   "testEnvironment": "node",
   "testRegex": ".spec.ts$",
   "testPathIgnorePatterns": [".*\\.integration.spec\\.ts$"],
+  "setupFiles": ["<rootDir>/tests/.jest/env-to-tests.ts"],
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   }

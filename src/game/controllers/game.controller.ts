@@ -10,8 +10,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 
-import { PlayerPickDTO } from '../dtos/playerPick.dto';
-import { AddPlayerInGameDTO } from '../dtos/addPlayerInGame.dto';
+import { PlayerPickDTO } from '../dtos/player-pick.dto';
+import { AddPlayerInGameDTO } from '../dtos/add-player-in-game.dto';
 import { GameService } from '../services/game.service';
 
 @Controller('/games')

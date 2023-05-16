@@ -20,7 +20,7 @@ You need have install [docker](https://docs.docker.com/engine/install/) and [doc
 If is installed, you need setting value of the env variable `DATABASE_URL` in the .env to `postgresql://postgres:postgres@localhost:5432/postgres?schema=public`. Obs: you don't edit docker-compose.yaml to it working.
 
 ```bash
-# run to start project in watch mode
+# run to start project in dev mode
 $ npm run start:dev
 ```
 
