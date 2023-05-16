@@ -38,11 +38,13 @@ class GameService {
   }
 
   async addPlayerInGame(gameId: string, username: string) {
-    const players = await this.playerRepository.getByGameId(gameId);
+    const game = await this.gameRepository.getById(gameId);
 
-    if (!Array.isArray(players)) {
+    if (!game) {
       return new HttpException('Game not found', HttpStatus.NOT_FOUND);
     }
+
+    const players = await this.playerRepository.getByGameId(gameId);
 
     if (players.length > 1) {
       return new HttpException(
@@ -106,10 +108,7 @@ class GameService {
     const updatedGame = await this.gameRepository.restartById(gameId);
 
     if (!updatedGame) {
-      return new HttpException(
-        'Internal server error in restart game',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      return new HttpException('Game is not found', HttpStatus.NOT_FOUND);
     }
 
     return updatedGame;

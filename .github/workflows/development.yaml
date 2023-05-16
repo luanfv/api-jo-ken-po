@@ -1,0 +1,49 @@
+name: Run tests and build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: ['master']
+
+jobs:
+  testsAndBuild:
+    name: Run tests and build
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Use Node.js 18.9.0
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.9.0
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start postgres container to tests
+        run: docker-compose up -d && sleep 5
+
+      - name: Create .env to tests
+        run: cat .env.example > .env
+
+      - name: Run prisma generate to tests
+        run: npx prisma generate
+
+      - name: Run prisma migrate to tests
+        run: npx prisma migrate dev
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Run build
+        run: npm run build
+
+      - name: Stop postgres container
+        if: always()
+        run: docker-compose -f down

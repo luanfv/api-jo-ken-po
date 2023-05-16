@@ -10,8 +10,8 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 
-import { PlayerPickDTO } from '../dtos/playerPick.dto';
-import { AddPlayerInGameDTO } from '../dtos/addPlayerInGame.dto';
+import { PlayerPickDTO } from '../dtos/player-pick.dto';
+import { AddPlayerInGameDTO } from '../dtos/add-player-in-game.dto';
 import { GameService } from '../services/game.service';
 
 @Controller('/games')
@@ -65,7 +65,13 @@ class GameController {
   @Put('/:gameId/restart')
   async restartGame(@Param('gameId') gameId: string) {
     try {
-      return await this.gameService.restartGame(gameId);
+      const response = await this.gameService.restartGame(gameId);
+
+      if (response instanceof HttpException) {
+        throw response;
+      }
+
+      return response;
     } catch (err) {
       if (err instanceof HttpException) {
         throw err;
