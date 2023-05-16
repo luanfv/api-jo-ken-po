@@ -278,4 +278,79 @@ describe('GameController (Integration)', () => {
       });
     });
   });
+
+  describe('PATCH /games/:gameId/player/:playerUsername', () => {
+    describe('WHEN cannot player pick in the game because not receive pick', () => {
+      it('SHOULD return BAD REQUEST', async () => {
+        await request(app.getHttpServer())
+          .patch('/games/game-id/player/player-id')
+          .expect(HttpStatus.BAD_REQUEST);
+      });
+    });
+
+    describe('WHEN cannot player pick in the game because receive a invalid pick', () => {
+      it('SHOULD return BAD REQUEST', async () => {
+        const result = await request(app.getHttpServer())
+          .patch('/games/id-invalid/player/player-invalid')
+          .expect(HttpStatus.BAD_REQUEST);
+
+        expect(result.body.message[0]).toEqual(
+          'pick needs to be: JO, KEN or PO',
+        );
+      });
+    });
+
+    describe('WHEN cannot player pick in the game because not find the game', () => {
+      it('SHOULD return NOT FOUND', async () => {
+        await request(app.getHttpServer())
+          .patch('/games/id-invalid/player/player-invalid')
+          .send({ pick: 'JO' })
+          .expect(HttpStatus.NOT_FOUND);
+      });
+    });
+
+    describe('WHEN cannot player pick in the game because the game over', () => {
+      it('SHOULD return BAD REQUEST', async () => {
+        await prisma.game.update({
+          data: {
+            is_game_over: true,
+          },
+          where: {
+            id: gameToTest.id,
+          },
+        });
+
+        await request(app.getHttpServer())
+          .patch(`/games/${gameToTest.id}/player/player-invalid`)
+          .send({ pick: 'JO' })
+          .expect(HttpStatus.BAD_REQUEST);
+      });
+    });
+
+    describe('WHEN cannot player pick in the game because not find the player', () => {
+      it('SHOULD return NOT FOUND', async () => {
+        await request(app.getHttpServer())
+          .patch(`/games/${gameToTest.id}/player/player-invalid`)
+          .send({ pick: 'JO' })
+          .expect(HttpStatus.NOT_FOUND);
+      });
+    });
+
+    describe('WHEN can player pick in the game', () => {
+      it('SHOULD return OK', async () => {
+        const playerToTest = await prisma.player.create({
+          data: {
+            id: uuid(),
+            username: 'player',
+            game_id: gameToTest.id,
+          },
+        });
+
+        await request(app.getHttpServer())
+          .patch(`/games/${gameToTest.id}/player/${playerToTest.username}`)
+          .send({ pick: 'JO' })
+          .expect(HttpStatus.OK);
+      });
+    });
+  });
 });
