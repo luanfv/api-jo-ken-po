@@ -2,7 +2,8 @@
 
 ## Description
 
-API JO KEN PO developed with NestJS.
+JO KEN PO API development with NestJS + Prisma + Postgres. This project is the classic game JO KEN PO. <br />
+You can [play JO KEN PO for here](https://api-jo-ken-po-prd.onrender.com/swagger).
 
 ## Installation
 
@@ -12,23 +13,20 @@ $ npm install
 
 ## Running the app
 
-You need create a copy of the file `.env.example` in the project root and rename to `.env` with your env variables.
+You need create a copy of the file `.env.example` in the project root and rename to `.env` with your environment variables. You can run this script for it:
+
+```bash
+# create a copy of the .env.example and rename to .env
+$ cat .env.example > .env
+```
 
 ### DEV
 
 You need have install [docker](https://docs.docker.com/engine/install/) and [docker-compose](https://docs.docker.com/compose/install/) to up postgres database.
-If is installed, you need setting value of the env variable `DATABASE_URL` in the .env to `postgresql://postgres:postgres@localhost:5432/postgres?schema=public`. Obs: you don't edit docker-compose.yaml to it working.
 
 ```bash
 # run to start project in dev mode
 $ npm run start:dev
-```
-
-### PROD
-
-```bash
-# run to start project in production mode
-$ npm run start:prod
 ```
 
 ## Tests
@@ -43,6 +41,7 @@ $ npm run test
 ### Integration tests
 
 You need have install [docker](https://docs.docker.com/engine/install/) and [docker-compose](https://docs.docker.com/compose/install/) to up postgres database.
+Obs: you cannot edit docker-compose.yaml and .env.example to work.
 
 ```bash
 # run
