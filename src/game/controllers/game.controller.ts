@@ -9,6 +9,7 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiTags, ApiBody } from '@nestjs/swagger';
 
 import { PlayerPickDTO } from '../dtos/player-pick.dto';
 import { AddPlayerInGameDTO } from '../dtos/add-player-in-game.dto';
@@ -18,6 +19,7 @@ import { GameService } from '../services/game.service';
 class GameController {
   constructor(private gameService: GameService) {}
 
+  @ApiTags('games')
   @Post()
   async createGame() {
     try {
@@ -40,6 +42,7 @@ class GameController {
     }
   }
 
+  @ApiTags('games')
   @Get('/:gameId')
   async getGameById(@Param('gameId') gameId: string) {
     try {
@@ -62,6 +65,7 @@ class GameController {
     }
   }
 
+  @ApiTags('games')
   @Put('/:gameId/restart')
   async restartGame(@Param('gameId') gameId: string) {
     try {
@@ -84,6 +88,7 @@ class GameController {
     }
   }
 
+  @ApiTags('games')
   @Put('/:gameId/finish')
   async finishGame(@Param('gameId') gameId: string) {
     try {
@@ -106,6 +111,19 @@ class GameController {
     }
   }
 
+  @ApiTags('players')
+  @ApiBody({
+    type: AddPlayerInGameDTO,
+    examples: {
+      successful: {
+        summary: 'Add player in the game',
+        description: 'Send a username to create new player in the game',
+        value: {
+          username: 'Fulanin',
+        },
+      },
+    },
+  })
   @Post('/:gameId/player')
   async addPlayerInGame(
     @Param('gameId') gameId: string,
@@ -134,6 +152,26 @@ class GameController {
     }
   }
 
+  @ApiTags('players')
+  @ApiBody({
+    type: PlayerPickDTO,
+    examples: {
+      successful: {
+        summary: 'Valid pick',
+        description: 'Send a valid pick',
+        value: {
+          pick: 'JO',
+        },
+      },
+      failure: {
+        summary: 'Invalid pick',
+        description: 'Send a invalid pick',
+        value: {
+          pick: 'BA',
+        },
+      },
+    },
+  })
   @Patch('/:gameId/player/:playerUsername')
   async playerPick(
     @Param('gameId') gameId: string,
