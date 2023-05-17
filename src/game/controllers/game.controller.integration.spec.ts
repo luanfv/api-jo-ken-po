@@ -5,18 +5,19 @@ import { v4 as uuid } from 'uuid';
 
 import { GameModule } from '../game.module';
 import { Game } from '../repositories/game.repository';
-import { prisma } from '../../databases/prisma';
+import { PrismaService } from '../../databases/prisma.service';
 
 describe('GameController (Integration)', () => {
   let app: INestApplication;
   let gameToTest: Game;
+  let prismaService: PrismaService;
 
   beforeAll(async () => {
-    const module: TestingModule = await Test.createTestingModule({
+    const moduleRef: TestingModule = await Test.createTestingModule({
       imports: [GameModule],
     }).compile();
 
-    app = module.createNestApplication();
+    app = moduleRef.createNestApplication();
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
@@ -25,11 +26,13 @@ describe('GameController (Integration)', () => {
       }),
     );
 
+    prismaService = moduleRef.get<PrismaService>(PrismaService);
+
     await app.init();
   });
 
   beforeEach(async () => {
-    gameToTest = await prisma.game.create({
+    gameToTest = await prismaService.game.create({
       data: {
         id: uuid(),
         is_game_over: false,
@@ -38,13 +41,13 @@ describe('GameController (Integration)', () => {
   });
 
   afterEach(async () => {
-    await prisma.player.deleteMany({
+    await prismaService.player.deleteMany({
       where: {
         game_id: gameToTest.id,
       },
     });
 
-    await prisma.game.deleteMany({
+    await prismaService.game.deleteMany({
       where: {
         id: gameToTest.id,
       },
@@ -65,7 +68,7 @@ describe('GameController (Integration)', () => {
           created_at: expect.anything(),
         });
 
-        await prisma.game.delete({
+        await prismaService.game.delete({
           where: {
             id: result.body.id,
           },
@@ -151,7 +154,7 @@ describe('GameController (Integration)', () => {
 
     describe('WHEN cannot finish the game because game not all players pick', () => {
       it('SHOULD return BAD REQUEST', async () => {
-        await prisma.player.createMany({
+        await prismaService.player.createMany({
           data: [
             {
               game_id: gameToTest.id,
@@ -175,7 +178,7 @@ describe('GameController (Integration)', () => {
 
     describe('WHEN can finish the game', () => {
       it('SHOULD return OK with the game', async () => {
-        await prisma.player.createMany({
+        await prismaService.player.createMany({
           data: [
             {
               game_id: gameToTest.id,
@@ -226,7 +229,7 @@ describe('GameController (Integration)', () => {
 
     describe('WHEN cannot add player in the game because already has enough players', () => {
       it('SHOULD return BAD REQUEST', async () => {
-        await prisma.player.createMany({
+        await prismaService.player.createMany({
           data: [
             {
               game_id: gameToTest.id,
@@ -250,7 +253,7 @@ describe('GameController (Integration)', () => {
 
     describe('WHEN cannot add player in the game because player already exists', () => {
       it('SHOULD return CONFLICT', async () => {
-        await prisma.player.createMany({
+        await prismaService.player.createMany({
           data: [
             {
               game_id: gameToTest.id,
@@ -317,7 +320,7 @@ describe('GameController (Integration)', () => {
 
     describe('WHEN cannot player pick in the game because the game over', () => {
       it('SHOULD return BAD REQUEST', async () => {
-        await prisma.game.update({
+        await prismaService.game.update({
           data: {
             is_game_over: true,
           },
@@ -344,7 +347,7 @@ describe('GameController (Integration)', () => {
 
     describe('WHEN can player pick in the game', () => {
       it('SHOULD return OK', async () => {
-        const playerToTest = await prisma.player.create({
+        const playerToTest = await prismaService.player.create({
           data: {
             id: uuid(),
             username: 'player',

@@ -2,13 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { Game } from '@prisma/client';
 import { v4 as uuid } from 'uuid';
 
-import { prisma } from '../../databases/prisma';
+import { PrismaService } from '../../databases/prisma.service';
 
 @Injectable()
 class GameRepository {
+  constructor(private prismaService: PrismaService) {}
+
   async create() {
     try {
-      return await prisma.game.create({
+      return await this.prismaService.game.create({
         data: {
           id: uuid(),
           is_game_over: false,
@@ -21,7 +23,7 @@ class GameRepository {
 
   async getById(gameId: string) {
     try {
-      return await prisma.game.findFirst({
+      return await this.prismaService.game.findFirst({
         where: {
           id: gameId,
         },
@@ -33,7 +35,7 @@ class GameRepository {
 
   async restartById(gameId: string) {
     try {
-      return await prisma.game.update({
+      return await this.prismaService.game.update({
         data: {
           is_game_over: false,
           players: {
@@ -58,7 +60,7 @@ class GameRepository {
 
   async setWinnerById(gameId: string, winnerId: string) {
     try {
-      return await prisma.game.update({
+      return await this.prismaService.game.update({
         data: {
           is_game_over: true,
           winner_id: winnerId,

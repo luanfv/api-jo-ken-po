@@ -4,21 +4,25 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { GameService } from './game.service';
 import { GameRepository, Game } from '../repositories/game.repository';
 import { PlayerRepository, Player } from '../repositories/player.repository';
-import { prisma } from '../../databases/prisma';
+import { PrismaService } from '../../databases/prisma.service';
+import { DatabasesModule } from '../../databases/databases.module';
 
 describe('GameService', () => {
   let gameService: GameService;
   let gameRepository: GameRepository;
   let playerRepository: PlayerRepository;
+  let prismaService: PrismaService;
 
   beforeEach(async () => {
     const moduleRef = await Test.createTestingModule({
+      imports: [DatabasesModule],
       providers: [GameService, GameRepository, PlayerRepository],
     }).compile();
 
     gameService = moduleRef.get<GameService>(GameService);
     gameRepository = moduleRef.get<GameRepository>(GameRepository);
     playerRepository = moduleRef.get<PlayerRepository>(PlayerRepository);
+    prismaService = moduleRef.get<PrismaService>(PrismaService);
   });
 
   afterEach(() => {
@@ -29,7 +33,7 @@ describe('GameService', () => {
     it('SHOULD call GameRepository.create', async () => {
       jest.spyOn(gameRepository, 'create');
       jest
-        .spyOn(prisma.game, 'create')
+        .spyOn(prismaService.game, 'create')
         .mockResolvedValueOnce(expect.anything());
 
       await gameService.createGame();
@@ -46,7 +50,7 @@ describe('GameService', () => {
           created_at: expect.any(Date),
         };
 
-        jest.spyOn(prisma.game, 'create').mockResolvedValueOnce(game);
+        jest.spyOn(prismaService.game, 'create').mockResolvedValueOnce(game);
 
         const result = await gameService.createGame();
         const expectedResult = game;
@@ -57,7 +61,7 @@ describe('GameService', () => {
 
     describe('AND cannot create new game', () => {
       it('SHOULD return a HttpException', async () => {
-        jest.spyOn(prisma.game, 'create').mockRejectedValueOnce(null);
+        jest.spyOn(prismaService.game, 'create').mockRejectedValueOnce(null);
 
         const result = await gameService.createGame();
         const expectedResult = new HttpException(
@@ -74,7 +78,7 @@ describe('GameService', () => {
     it('SHOULD call GameRepository.getById', () => {
       jest.spyOn(gameRepository, 'getById');
       jest
-        .spyOn(prisma.game, 'findFirst')
+        .spyOn(prismaService.game, 'findFirst')
         .mockResolvedValueOnce(expect.anything());
 
       gameService.getGameById('');
@@ -92,7 +96,7 @@ describe('GameService', () => {
         };
 
         jest.spyOn(gameRepository, 'getById');
-        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(game);
+        jest.spyOn(prismaService.game, 'findFirst').mockResolvedValueOnce(game);
 
         const result = await gameService.getGameById(expect.any(String));
         const expectedResult = game;
@@ -104,7 +108,7 @@ describe('GameService', () => {
     describe('AND cannot game found', () => {
       it('SHOULD return a HttpException', async () => {
         jest.spyOn(gameRepository, 'getById');
-        jest.spyOn(prisma.game, 'findFirst').mockRejectedValueOnce(null);
+        jest.spyOn(prismaService.game, 'findFirst').mockRejectedValueOnce(null);
 
         const result = await gameService.getGameById(expect.any(String));
         const expectedResult = new HttpException(
@@ -121,10 +125,10 @@ describe('GameService', () => {
     it('SHOULD call GameRepository.getById', async () => {
       jest.spyOn(playerRepository, 'getByGameId');
       jest
-        .spyOn(prisma.game, 'findFirst')
+        .spyOn(prismaService.game, 'findFirst')
         .mockResolvedValueOnce(expect.anything());
       jest
-        .spyOn(prisma.player, 'findMany')
+        .spyOn(prismaService.player, 'findMany')
         .mockResolvedValueOnce(expect.anything());
 
       await gameService.addPlayerInGame('', '');
@@ -134,7 +138,7 @@ describe('GameService', () => {
 
     describe('AND game not found', () => {
       it('SHOULD return a HttpException', async () => {
-        jest.spyOn(prisma.game, 'findFirst').mockRejectedValueOnce(null);
+        jest.spyOn(prismaService.game, 'findFirst').mockRejectedValueOnce(null);
 
         const result = await gameService.addPlayerInGame('', '');
         const expectedResult = new HttpException(
@@ -166,10 +170,10 @@ describe('GameService', () => {
         ];
 
         jest
-          .spyOn(prisma.game, 'findFirst')
+          .spyOn(prismaService.game, 'findFirst')
           .mockResolvedValueOnce(expect.anything());
         jest
-          .spyOn(prisma.player, 'findMany')
+          .spyOn(prismaService.player, 'findMany')
           .mockResolvedValueOnce(existingPlayers);
 
         const result = await gameService.addPlayerInGame('', 'player3');
@@ -193,10 +197,10 @@ describe('GameService', () => {
         };
 
         jest
-          .spyOn(prisma.game, 'findFirst')
+          .spyOn(prismaService.game, 'findFirst')
           .mockResolvedValueOnce(expect.anything());
         jest
-          .spyOn(prisma.player, 'findMany')
+          .spyOn(prismaService.player, 'findMany')
           .mockResolvedValueOnce([existingPlayer]);
 
         const result = await gameService.addPlayerInGame('', 'player1');
@@ -220,10 +224,12 @@ describe('GameService', () => {
         };
 
         jest
-          .spyOn(prisma.game, 'findFirst')
+          .spyOn(prismaService.game, 'findFirst')
           .mockResolvedValueOnce(expect.anything());
-        jest.spyOn(prisma.player, 'findMany').mockResolvedValueOnce([]);
-        jest.spyOn(prisma.player, 'create').mockResolvedValueOnce(player);
+        jest.spyOn(prismaService.player, 'findMany').mockResolvedValueOnce([]);
+        jest
+          .spyOn(prismaService.player, 'create')
+          .mockResolvedValueOnce(player);
 
         const result = await gameService.addPlayerInGame('', '');
 
@@ -234,10 +240,10 @@ describe('GameService', () => {
     describe('AND cannot create player', () => {
       it('SHOULD return a HttpException', async () => {
         jest
-          .spyOn(prisma.game, 'findFirst')
+          .spyOn(prismaService.game, 'findFirst')
           .mockResolvedValueOnce(expect.anything());
-        jest.spyOn(prisma.player, 'findMany').mockResolvedValueOnce([]);
-        jest.spyOn(prisma.player, 'create').mockRejectedValueOnce(null);
+        jest.spyOn(prismaService.player, 'findMany').mockResolvedValueOnce([]);
+        jest.spyOn(prismaService.player, 'create').mockRejectedValueOnce(null);
 
         const result = await gameService.addPlayerInGame('', '');
         const expectedResult = new HttpException(
@@ -260,10 +266,10 @@ describe('GameService', () => {
         };
 
         jest
-          .spyOn(prisma.game, 'findFirst')
+          .spyOn(prismaService.game, 'findFirst')
           .mockResolvedValueOnce(expect.anything());
         jest
-          .spyOn(prisma.player, 'findMany')
+          .spyOn(prismaService.player, 'findMany')
           .mockResolvedValueOnce([existingPlayer]);
 
         const newPlayerName = 'player2';
@@ -274,7 +280,9 @@ describe('GameService', () => {
           pick: expect.any(String),
           username: newPlayerName,
         };
-        jest.spyOn(prisma.player, 'create').mockResolvedValueOnce(newPlayer);
+        jest
+          .spyOn(prismaService.player, 'create')
+          .mockResolvedValueOnce(newPlayer);
 
         const result = (await gameService.addPlayerInGame(
           '',
@@ -289,7 +297,7 @@ describe('GameService', () => {
   describe('WHEN call playerPick', () => {
     it('SHOULD call GameRepository.getById', async () => {
       jest.spyOn(gameRepository, 'getById');
-      jest.spyOn(prisma.game, 'findFirst').mockRejectedValueOnce(null);
+      jest.spyOn(prismaService.game, 'findFirst').mockRejectedValueOnce(null);
 
       await gameService.playerPick('', '', 'JO');
 
@@ -298,7 +306,7 @@ describe('GameService', () => {
 
     describe('AND game not found', () => {
       it('SHOULD return a HttpException', async () => {
-        jest.spyOn(prisma.game, 'findFirst').mockRejectedValueOnce(null);
+        jest.spyOn(prismaService.game, 'findFirst').mockRejectedValueOnce(null);
 
         const result = await gameService.playerPick('', '', 'JO');
         const expectedResult = new HttpException(
@@ -319,7 +327,7 @@ describe('GameService', () => {
           is_game_over: true,
         };
 
-        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(game);
+        jest.spyOn(prismaService.game, 'findFirst').mockResolvedValueOnce(game);
 
         const result = await gameService.playerPick('', '', 'JO');
         const expectedResult = new HttpException(
@@ -340,8 +348,10 @@ describe('GameService', () => {
           is_game_over: false,
         };
 
-        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(game);
-        jest.spyOn(prisma.player, 'findFirst').mockRejectedValueOnce(null);
+        jest.spyOn(prismaService.game, 'findFirst').mockResolvedValueOnce(game);
+        jest
+          .spyOn(prismaService.player, 'findFirst')
+          .mockRejectedValueOnce(null);
 
         const result = await gameService.playerPick('', '', 'JO');
         const expectedResult = new HttpException(
@@ -361,7 +371,7 @@ describe('GameService', () => {
           winner_id: expect.any(String),
           is_game_over: false,
         };
-        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(game);
+        jest.spyOn(prismaService.game, 'findFirst').mockResolvedValueOnce(game);
 
         const player: Player = {
           created_at: expect.any(Date),
@@ -370,9 +380,11 @@ describe('GameService', () => {
           pick: expect.any(String),
           username: expect.any(String),
         };
-        jest.spyOn(prisma.player, 'findFirst').mockResolvedValueOnce(player);
+        jest
+          .spyOn(prismaService.player, 'findFirst')
+          .mockResolvedValueOnce(player);
 
-        jest.spyOn(prisma.player, 'update').mockRejectedValueOnce(null);
+        jest.spyOn(prismaService.player, 'update').mockRejectedValueOnce(null);
 
         const result = await gameService.playerPick('', '', 'JO');
         const expectedResult = new HttpException(
@@ -394,7 +406,7 @@ describe('GameService', () => {
           winner_id: expect.any(String),
           is_game_over: false,
         };
-        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(game);
+        jest.spyOn(prismaService.game, 'findFirst').mockResolvedValueOnce(game);
 
         const player: Player = {
           created_at: expect.any(Date),
@@ -403,10 +415,12 @@ describe('GameService', () => {
           pick: 'KEN',
           username: expect.any(String),
         };
-        jest.spyOn(prisma.player, 'findFirst').mockResolvedValueOnce(player);
+        jest
+          .spyOn(prismaService.player, 'findFirst')
+          .mockResolvedValueOnce(player);
 
         jest
-          .spyOn(prisma.player, 'update')
+          .spyOn(prismaService.player, 'update')
           .mockResolvedValueOnce({ ...player, pick: 'KEN' });
 
         const result = await gameService.playerPick('', '', 'JO');
@@ -420,7 +434,7 @@ describe('GameService', () => {
   describe('WHEN call restartGame', () => {
     it('SHOULD call GameRepository.getById', async () => {
       jest.spyOn(gameRepository, 'restartById');
-      jest.spyOn(prisma.game, 'update').mockRejectedValueOnce(null);
+      jest.spyOn(prismaService.game, 'update').mockRejectedValueOnce(null);
 
       await gameService.restartGame('');
 
@@ -430,7 +444,7 @@ describe('GameService', () => {
     describe('AND game not found', () => {
       it('SHOULD return instance of HttpException', async () => {
         jest.spyOn(gameRepository, 'restartById');
-        jest.spyOn(prisma.game, 'update').mockRejectedValueOnce(null);
+        jest.spyOn(prismaService.game, 'update').mockRejectedValueOnce(null);
 
         const result = await gameService.restartGame('');
         const expectedResult = new HttpException(
@@ -452,7 +466,9 @@ describe('GameService', () => {
         };
 
         jest.spyOn(gameRepository, 'restartById');
-        jest.spyOn(prisma.game, 'update').mockResolvedValueOnce(mockGame);
+        jest
+          .spyOn(prismaService.game, 'update')
+          .mockResolvedValueOnce(mockGame);
 
         const result = await gameService.restartGame('');
         const expectedResult = mockGame;
@@ -465,7 +481,7 @@ describe('GameService', () => {
   describe('WHEN call finishGame', () => {
     it('SHOULD call GameRepository.getById', async () => {
       jest.spyOn(gameRepository, 'getById');
-      jest.spyOn(prisma.game, 'findFirst').mockRejectedValueOnce(null);
+      jest.spyOn(prismaService.game, 'findFirst').mockRejectedValueOnce(null);
 
       await gameService.finishGame('');
 
@@ -475,7 +491,7 @@ describe('GameService', () => {
     describe('AND game not found', () => {
       it('SHOULD return a instance HttpException', async () => {
         jest.spyOn(gameRepository, 'getById');
-        jest.spyOn(prisma.game, 'findFirst').mockRejectedValueOnce(null);
+        jest.spyOn(prismaService.game, 'findFirst').mockRejectedValueOnce(null);
 
         const result = await gameService.finishGame('');
         const expectedResult = new HttpException(
@@ -497,7 +513,9 @@ describe('GameService', () => {
         };
 
         jest.spyOn(gameRepository, 'getById');
-        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(mockGame);
+        jest
+          .spyOn(prismaService.game, 'findFirst')
+          .mockResolvedValueOnce(mockGame);
 
         const result = await gameService.finishGame('');
         const expectedResult = new HttpException(
@@ -519,9 +537,11 @@ describe('GameService', () => {
         };
 
         jest.spyOn(gameRepository, 'getById');
-        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(mockGame);
+        jest
+          .spyOn(prismaService.game, 'findFirst')
+          .mockResolvedValueOnce(mockGame);
         jest.spyOn(playerRepository, 'getByGameId');
-        jest.spyOn(prisma.player, 'findMany').mockRejectedValue(null);
+        jest.spyOn(prismaService.player, 'findMany').mockRejectedValue(null);
 
         await gameService.finishGame('');
 
@@ -537,9 +557,11 @@ describe('GameService', () => {
         };
 
         jest.spyOn(gameRepository, 'getById');
-        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(mockGame);
+        jest
+          .spyOn(prismaService.game, 'findFirst')
+          .mockResolvedValueOnce(mockGame);
         jest.spyOn(playerRepository, 'getByGameId');
-        jest.spyOn(prisma.player, 'findMany').mockRejectedValue(null);
+        jest.spyOn(prismaService.player, 'findMany').mockRejectedValue(null);
 
         const result = await gameService.finishGame('');
         const expectedResult = new HttpException(
@@ -577,10 +599,12 @@ describe('GameService', () => {
         ];
 
         jest.spyOn(gameRepository, 'getById');
-        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(mockGame);
+        jest
+          .spyOn(prismaService.game, 'findFirst')
+          .mockResolvedValueOnce(mockGame);
         jest.spyOn(playerRepository, 'getByGameId');
         jest
-          .spyOn(prisma.player, 'findMany')
+          .spyOn(prismaService.player, 'findMany')
           .mockResolvedValueOnce(mockPlayers);
 
         const result = await gameService.finishGame('');
@@ -619,10 +643,12 @@ describe('GameService', () => {
         ];
 
         jest.spyOn(gameRepository, 'getById');
-        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(mockGame);
+        jest
+          .spyOn(prismaService.game, 'findFirst')
+          .mockResolvedValueOnce(mockGame);
         jest.spyOn(playerRepository, 'getByGameId');
         jest
-          .spyOn(prisma.player, 'findMany')
+          .spyOn(prismaService.player, 'findMany')
           .mockResolvedValueOnce(mockPlayers);
 
         const result = await gameService.finishGame('');
@@ -661,10 +687,12 @@ describe('GameService', () => {
         ];
 
         jest.spyOn(gameRepository, 'getById');
-        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(mockGame);
+        jest
+          .spyOn(prismaService.game, 'findFirst')
+          .mockResolvedValueOnce(mockGame);
         jest.spyOn(playerRepository, 'getByGameId');
         jest
-          .spyOn(prisma.player, 'findMany')
+          .spyOn(prismaService.player, 'findMany')
           .mockResolvedValueOnce(mockPlayers);
 
         const result = await gameService.finishGame('');
@@ -701,13 +729,15 @@ describe('GameService', () => {
         ];
 
         jest.spyOn(gameRepository, 'getById');
-        jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(mockGame);
+        jest
+          .spyOn(prismaService.game, 'findFirst')
+          .mockResolvedValueOnce(mockGame);
         jest.spyOn(playerRepository, 'getByGameId');
         jest
-          .spyOn(prisma.player, 'findMany')
+          .spyOn(prismaService.player, 'findMany')
           .mockResolvedValueOnce(mockPlayers);
         jest.spyOn(gameRepository, 'setWinnerById').mockResolvedValueOnce(null);
-        jest.spyOn(prisma.game, 'update').mockRejectedValueOnce(null);
+        jest.spyOn(prismaService.game, 'update').mockRejectedValueOnce(null);
 
         await gameService.finishGame('');
 
@@ -754,16 +784,18 @@ describe('GameService', () => {
           ];
 
           jest.spyOn(gameRepository, 'getById');
-          jest.spyOn(prisma.game, 'findFirst').mockResolvedValueOnce(mockGame);
+          jest
+            .spyOn(prismaService.game, 'findFirst')
+            .mockResolvedValueOnce(mockGame);
           jest.spyOn(playerRepository, 'getByGameId');
           jest
-            .spyOn(prisma.player, 'findMany')
+            .spyOn(prismaService.player, 'findMany')
             .mockResolvedValueOnce(mockPlayers);
           jest
             .spyOn(gameRepository, 'setWinnerById')
             .mockResolvedValueOnce(expect.anything());
           jest
-            .spyOn(prisma.game, 'update')
+            .spyOn(prismaService.game, 'update')
             .mockResolvedValueOnce(expect.anything());
 
           const result = (await gameService.finishGame('')) as Game;

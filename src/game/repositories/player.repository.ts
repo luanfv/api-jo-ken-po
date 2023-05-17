@@ -2,15 +2,17 @@ import { Injectable } from '@nestjs/common';
 import { Player } from '@prisma/client';
 import { v4 as uuid } from 'uuid';
 
-import { prisma } from '../../databases/prisma';
+import { PrismaService } from '../../databases/prisma.service';
 
 type PlayerPick = 'JO' | 'KEN' | 'PO';
 
 @Injectable()
 class PlayerRepository {
+  constructor(private prismaService: PrismaService) {}
+
   async create(gameId: string, username: string) {
     try {
-      return await prisma.player.create({
+      return await this.prismaService.player.create({
         data: {
           id: uuid(),
           game_id: gameId,
@@ -24,7 +26,7 @@ class PlayerRepository {
 
   async getByIdAndGameId(username: string, gameId: string) {
     try {
-      return await prisma.player.findFirst({
+      return await this.prismaService.player.findFirst({
         where: {
           game_id: gameId,
           username,
@@ -37,7 +39,7 @@ class PlayerRepository {
 
   async getByGameId(gameId: string) {
     try {
-      return await prisma.player.findMany({
+      return await this.prismaService.player.findMany({
         where: {
           game_id: gameId,
         },
@@ -49,7 +51,7 @@ class PlayerRepository {
 
   async setPickById(playerId: string, pick: PlayerPick) {
     try {
-      return await prisma.player.update({
+      return await this.prismaService.player.update({
         where: {
           id: playerId,
         },
