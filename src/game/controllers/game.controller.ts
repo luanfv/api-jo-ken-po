@@ -9,19 +9,26 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiBody } from '@nestjs/swagger';
+import { ApiTags, ApiBody, ApiResponse } from '@nestjs/swagger';
 
 import { PlayerPickDTO } from '../dtos/player-pick.dto';
 import { AddPlayerInGameDTO } from '../dtos/add-player-in-game.dto';
 import { GameService } from '../services/game.service';
+import { GameResponse } from '../dtos/game.response.dto';
+import { PlayerResponse } from '../dtos/player.response.dto';
 
 @Controller('/games')
 class GameController {
   constructor(private gameService: GameService) {}
 
   @ApiTags('games')
+  @ApiResponse({
+    type: GameResponse,
+    status: HttpStatus.CREATED,
+    description: 'Create new game',
+  })
   @Post()
-  async createGame() {
+  async createGame(): Promise<GameResponse> {
     try {
       const response = await this.gameService.createGame();
 
@@ -43,8 +50,13 @@ class GameController {
   }
 
   @ApiTags('games')
+  @ApiResponse({
+    type: GameResponse,
+    status: HttpStatus.OK,
+    description: 'Find the game',
+  })
   @Get('/:gameId')
-  async getGameById(@Param('gameId') gameId: string) {
+  async getGameById(@Param('gameId') gameId: string): Promise<GameResponse> {
     try {
       const response = await this.gameService.getGameById(gameId);
 
@@ -66,8 +78,13 @@ class GameController {
   }
 
   @ApiTags('games')
+  @ApiResponse({
+    type: GameResponse,
+    status: HttpStatus.OK,
+    description: 'Restart the game',
+  })
   @Put('/:gameId/restart')
-  async restartGame(@Param('gameId') gameId: string) {
+  async restartGame(@Param('gameId') gameId: string): Promise<GameResponse> {
     try {
       const response = await this.gameService.restartGame(gameId);
 
@@ -89,8 +106,13 @@ class GameController {
   }
 
   @ApiTags('games')
+  @ApiResponse({
+    type: GameResponse,
+    status: HttpStatus.OK,
+    description: 'Finish the game',
+  })
   @Put('/:gameId/finish')
-  async finishGame(@Param('gameId') gameId: string) {
+  async finishGame(@Param('gameId') gameId: string): Promise<GameResponse> {
     try {
       const response = await this.gameService.finishGame(gameId);
 
@@ -112,6 +134,11 @@ class GameController {
   }
 
   @ApiTags('players')
+  @ApiResponse({
+    type: PlayerResponse,
+    status: HttpStatus.CREATED,
+    description: 'Add player in the game',
+  })
   @ApiBody({
     type: AddPlayerInGameDTO,
     examples: {
@@ -128,7 +155,7 @@ class GameController {
   async addPlayerInGame(
     @Param('gameId') gameId: string,
     @Body() body: AddPlayerInGameDTO,
-  ) {
+  ): Promise<PlayerResponse> {
     try {
       const response = await this.gameService.addPlayerInGame(
         gameId,
@@ -153,6 +180,11 @@ class GameController {
   }
 
   @ApiTags('players')
+  @ApiResponse({
+    type: PlayerResponse,
+    status: HttpStatus.OK,
+    description: 'Player pick: JO, KEN or PO',
+  })
   @ApiBody({
     type: PlayerPickDTO,
     examples: {
@@ -177,7 +209,7 @@ class GameController {
     @Param('gameId') gameId: string,
     @Param('playerUsername') playerUsername: string,
     @Body() body: PlayerPickDTO,
-  ) {
+  ): Promise<PlayerResponse> {
     try {
       const response = await this.gameService.playerPick(
         gameId,
