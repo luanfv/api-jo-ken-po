@@ -18,9 +18,9 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "test:db": "docker-compose up postgres -d --wait && sleep 5",
-    "test:drop-db": "docker kill jo-ken-po-db",
-    "test:env": "cat .env.example > .env.test",
+    "test:db": "docker-compose -f ./docker-compose.test.yaml up -d --wait && sleep 5",
+    "test:drop-db": "docker kill jo-ken-po-db-test && docker rm jo-ken-po-db-test",
+    "test:env": "echo \"DATABASE_URL=\"postgresql://postgres:postgres@localhost:5431/postgres?schema=public\"\" > .env.test",
     "test:drop-env": "rm .env.test",
     "test:integration": "jest --config ./tests/jest-integration.json",
     "test:integration-local": "npm run test:db && npm run test:env && dotenv -e .env.test npx prisma migrate dev && npm run test:integration && npm run test:drop-db && npm run test:drop-env"
