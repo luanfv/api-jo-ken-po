@@ -1,4 +1,11 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 
 import { GameRepository } from '../repositories/game.repository';
 import {
@@ -69,35 +76,32 @@ class GameService {
     return createdPlayer;
   }
 
-  async playerPick(gameId: string, username: string, pick: PlayerPick) {
-    const existingGame = await this.gameRepository.getById(gameId);
+  async playerPick(gameId: string, playerId: string, pick: PlayerPick) {
+    const [game, player] = await Promise.all([
+      this.gameRepository.getById(gameId),
+      this.playerRepository.getById(playerId),
+    ]);
 
-    if (!existingGame) {
-      return new HttpException('Game not found', HttpStatus.NOT_FOUND);
+    if (!game) {
+      return new NotFoundException('Game not found');
     }
 
-    if (existingGame.is_game_over) {
-      return new HttpException('Game over', HttpStatus.BAD_REQUEST);
+    if (!player || player.game_id !== game.id) {
+      return new NotFoundException('Player not found');
     }
 
-    const existingPlayer = await this.playerRepository.getByIdAndGameId(
-      username,
-      existingGame.id,
-    );
-
-    if (!existingPlayer) {
-      return new HttpException('Player not found', HttpStatus.NOT_FOUND);
+    if (game.is_game_over) {
+      return new BadRequestException('Game over');
     }
 
     const updatedPlayer = await this.playerRepository.setPickById(
-      existingPlayer.id,
+      player.id,
       pick,
     );
 
     if (!updatedPlayer) {
-      return new HttpException(
+      return new InternalServerErrorException(
         'Internal server error in set player pick',
-        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
 

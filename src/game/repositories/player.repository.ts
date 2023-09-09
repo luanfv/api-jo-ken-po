@@ -24,12 +24,24 @@ class PlayerRepository {
     }
   }
 
-  async getByIdAndGameId(username: string, gameId: string) {
+  async getByIdAndGameId(playerId: string, gameId: string) {
     try {
       return await this.prismaService.player.findFirst({
         where: {
           game_id: gameId,
-          username,
+          id: playerId,
+        },
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  async getById(playerId: string) {
+    try {
+      return await this.prismaService.player.findFirst({
+        where: {
+          id: playerId,
         },
       });
     } catch {
