@@ -81,34 +81,6 @@ class GameController {
   @ApiResponse({
     type: GameResponse,
     status: HttpStatus.OK,
-    description: 'Restart the game',
-  })
-  @Put('/:gameId/restart')
-  async restartGame(@Param('gameId') gameId: string): Promise<GameResponse> {
-    try {
-      const response = await this.gameService.restartGame(gameId);
-
-      if (response instanceof HttpException) {
-        throw response;
-      }
-
-      return response;
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw err;
-      }
-
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
-  }
-
-  @ApiTags('games')
-  @ApiResponse({
-    type: GameResponse,
-    status: HttpStatus.OK,
     description: 'Finish the game',
   })
   @Put('/:gameId/finish')
@@ -133,7 +105,7 @@ class GameController {
     }
   }
 
-  @ApiTags('players')
+  @ApiTags('games')
   @ApiResponse({
     type: PlayerResponse,
     status: HttpStatus.CREATED,
@@ -179,7 +151,7 @@ class GameController {
     }
   }
 
-  @ApiTags('players')
+  @ApiTags('games')
   @ApiResponse({
     type: PlayerResponse,
     status: HttpStatus.OK,
@@ -204,16 +176,16 @@ class GameController {
       },
     },
   })
-  @Patch('/:gameId/player/:playerUsername')
+  @Patch('/:gameId/player/:playerId')
   async playerPick(
     @Param('gameId') gameId: string,
-    @Param('playerUsername') playerUsername: string,
+    @Param('playerId') playerId: string,
     @Body() body: PlayerPickDTO,
   ): Promise<PlayerResponse> {
     try {
       const response = await this.gameService.playerPick(
         gameId,
-        playerUsername,
+        playerId,
         body.pick,
       );
 

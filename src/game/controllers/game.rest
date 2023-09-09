@@ -1,37 +1,31 @@
 # Routes
 
-## Game
+## Game - Jo Ken Po
 
 ### Create game
 POST http://localhost:3000/games
 content-type: application/json
 
-### Get all games
-GET http://localhost:3000/games
-content-type: application/json
-
 ### Get game by id
-GET http://localhost:3000/games/48afbfbb-09db-41d5-a40a-5b4b530cab1a
+GET http://localhost:3000/games/5f61b7bc-90cf-4d4f-b0d1-e3c70acbf85c
 content-type: application/json
-
-### Restart game
-PUT http://localhost:3000/games/37d432f7-5d6a-4906-a7d6-f02bb1f9c555/restart
-content-type: application/json
-
-## Game player
 
 ### Add player in the game
-POST http://localhost:3000/games/48afbfbb-09db-41d5-a40a-5b4b530cab1a/player
+POST http://localhost:3000/games/5f61b7bc-90cf-4d4f-b0d1-e3c70acbf85c/player
 content-type: application/json
 
 {
-  "username": "fulanin"
+  "username": "fulanin2"
 }
 
 ### Player play
-PATCH http://localhost:3000/games/48afbfbb-09db-41d5-a40a-5b4b530cab1a/player/fulanin
+PATCH http://localhost:3000/games/5f61b7bc-90cf-4d4f-b0d1-e3c70acbf85c/player/09fa7a82-2108-44d4-b323-7a9758fc2f04
 content-type: application/json
 
 {
   "pick": "PO"
 }
+
+### Finish game
+PUT http://localhost:3000/games/5f61b7bc-90cf-4d4f-b0d1-e3c70acbf85c/finish
+content-type: application/json

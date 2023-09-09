@@ -93,7 +93,7 @@ describe('GameController (Integration)', () => {
       });
     });
 
-    describe('WHEN not find the game', () => {
+    describe('WHEN game not found', () => {
       it('SHOULD return NOT FOUND', async () => {
         await request(app.getHttpServer())
           .get('/games/id-invalid')
@@ -102,33 +102,8 @@ describe('GameController (Integration)', () => {
     });
   });
 
-  describe('PUT /games/:gameId/restart', () => {
-    describe('WHEN can restart the game', () => {
-      it('SHOULD return OK with the game updated', async () => {
-        const result = await request(app.getHttpServer())
-          .put(`/games/${gameToTest.id}/restart`)
-          .expect(HttpStatus.OK);
-
-        expect(result.body).toEqual({
-          id: gameToTest.id,
-          is_game_over: gameToTest.is_game_over,
-          winner_id: gameToTest.winner_id,
-          created_at: expect.anything(),
-        });
-      });
-    });
-
-    describe('WHEN cannot restart the game', () => {
-      it('SHOULD return NOT FOUND', async () => {
-        await request(app.getHttpServer())
-          .put('/games/id-invalid/restart')
-          .expect(HttpStatus.NOT_FOUND);
-      });
-    });
-  });
-
   describe('PUT /games/:gameId/finish', () => {
-    describe('WHEN cannot finish the game because game is not found', () => {
+    describe('WHEN cannot finish the game because not found game', () => {
       it('SHOULD return NOT FOUND', async () => {
         await request(app.getHttpServer())
           .put('/games/id-invalid/finish')
@@ -218,7 +193,7 @@ describe('GameController (Integration)', () => {
       });
     });
 
-    describe('WHEN cannot add player in the game because not find the game', () => {
+    describe('WHEN cannot add player in the game because not found game', () => {
       it('SHOULD return NOT FOUND', async () => {
         await request(app.getHttpServer())
           .post('/games/id-invalid/player')
@@ -288,19 +263,39 @@ describe('GameController (Integration)', () => {
     });
   });
 
-  describe('PATCH /games/:gameId/player/:playerUsername', () => {
+  describe('PATCH /games/:gameId/player/:playerId', () => {
     describe('WHEN cannot player pick in the game because not receive pick', () => {
       it('SHOULD return BAD REQUEST', async () => {
+        const playerId = uuid();
+
+        await prismaService.player.create({
+          data: {
+            game_id: gameToTest.id,
+            username: 'Player1',
+            id: playerId,
+          },
+        });
+
         await request(app.getHttpServer())
-          .patch('/games/game-id/player/player-id')
+          .patch(`/games/${gameToTest.id}/player/${playerId}`)
           .expect(HttpStatus.BAD_REQUEST);
       });
     });
 
     describe('WHEN cannot player pick in the game because receive a invalid pick', () => {
       it('SHOULD return BAD REQUEST', async () => {
+        const playerId = uuid();
+
+        await prismaService.player.create({
+          data: {
+            game_id: gameToTest.id,
+            username: 'Player1',
+            id: playerId,
+          },
+        });
+
         const result = await request(app.getHttpServer())
-          .patch('/games/id-invalid/player/player-invalid')
+          .patch(`/games/${gameToTest.id}/player/${playerId}`)
           .expect(HttpStatus.BAD_REQUEST);
 
         expect(result.body.message[0]).toEqual(
@@ -309,7 +304,7 @@ describe('GameController (Integration)', () => {
       });
     });
 
-    describe('WHEN cannot player pick in the game because not find the game', () => {
+    describe('WHEN cannot player pick in the game because not found game', () => {
       it('SHOULD return NOT FOUND', async () => {
         await request(app.getHttpServer())
           .patch('/games/id-invalid/player/player-invalid')
@@ -329,14 +324,24 @@ describe('GameController (Integration)', () => {
           },
         });
 
+        const playerId = uuid();
+
+        await prismaService.player.create({
+          data: {
+            game_id: gameToTest.id,
+            username: 'Player1',
+            id: playerId,
+          },
+        });
+
         await request(app.getHttpServer())
-          .patch(`/games/${gameToTest.id}/player/player-invalid`)
+          .patch(`/games/${gameToTest.id}/player/${playerId}`)
           .send({ pick: 'JO' })
           .expect(HttpStatus.BAD_REQUEST);
       });
     });
 
-    describe('WHEN cannot player pick in the game because not find the player', () => {
+    describe('WHEN cannot player pick in the game because not found player', () => {
       it('SHOULD return NOT FOUND', async () => {
         await request(app.getHttpServer())
           .patch(`/games/${gameToTest.id}/player/player-invalid`)
@@ -347,16 +352,18 @@ describe('GameController (Integration)', () => {
 
     describe('WHEN can player pick in the game', () => {
       it('SHOULD return OK', async () => {
-        const playerToTest = await prismaService.player.create({
+        const playerId = uuid();
+
+        await prismaService.player.create({
           data: {
-            id: uuid(),
-            username: 'player',
             game_id: gameToTest.id,
+            username: 'Player1',
+            id: playerId,
           },
         });
 
         await request(app.getHttpServer())
-          .patch(`/games/${gameToTest.id}/player/${playerToTest.username}`)
+          .patch(`/games/${gameToTest.id}/player/${playerId}`)
           .send({ pick: 'JO' })
           .expect(HttpStatus.OK);
       });

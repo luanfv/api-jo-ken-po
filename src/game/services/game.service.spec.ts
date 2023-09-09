@@ -322,12 +322,22 @@ describe('GameService', () => {
       it('SHOULD return a HttpException', async () => {
         const game: Game = {
           created_at: expect.any(Date),
-          id: expect.any(String),
+          id: '321',
           winner_id: expect.any(String),
           is_game_over: true,
         };
+        const player: Player = {
+          created_at: expect.any(Date),
+          id: '123',
+          game_id: '321',
+          pick: expect.any(String),
+          username: expect.any(String),
+        };
 
         jest.spyOn(prismaService.game, 'findFirst').mockResolvedValueOnce(game);
+        jest
+          .spyOn(prismaService.player, 'findFirst')
+          .mockResolvedValueOnce(player);
 
         const result = await gameService.playerPick('', '', 'JO');
         const expectedResult = new HttpException(
@@ -367,7 +377,7 @@ describe('GameService', () => {
       it('SHOULD return a HttpException', async () => {
         const game: Game = {
           created_at: expect.any(Date),
-          id: expect.any(String),
+          id: 'abc',
           winner_id: expect.any(String),
           is_game_over: false,
         };
@@ -375,8 +385,8 @@ describe('GameService', () => {
 
         const player: Player = {
           created_at: expect.any(Date),
-          id: expect.any(String),
-          game_id: expect.any(String),
+          id: 'cba',
+          game_id: 'abc',
           pick: expect.any(String),
           username: expect.any(String),
         };
@@ -402,7 +412,7 @@ describe('GameService', () => {
 
         const game: Game = {
           created_at: expect.any(Date),
-          id: expect.any(String),
+          id: 'qwe',
           winner_id: expect.any(String),
           is_game_over: false,
         };
@@ -410,8 +420,8 @@ describe('GameService', () => {
 
         const player: Player = {
           created_at: expect.any(Date),
-          id: expect.any(String),
-          game_id: expect.any(String),
+          id: 'ewq',
+          game_id: 'qwe',
           pick: 'KEN',
           username: expect.any(String),
         };
