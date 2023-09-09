@@ -24,19 +24,6 @@ class PlayerRepository {
     }
   }
 
-  async getByIdAndGameId(playerId: string, gameId: string) {
-    try {
-      return await this.prismaService.player.findFirst({
-        where: {
-          game_id: gameId,
-          id: playerId,
-        },
-      });
-    } catch {
-      return null;
-    }
-  }
-
   async getById(playerId: string) {
     try {
       return await this.prismaService.player.findFirst({
