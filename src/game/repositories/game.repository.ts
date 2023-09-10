@@ -33,21 +33,13 @@ class GameRepository {
     }
   }
 
-  async restartById(gameId: string) {
+  async setWinnerById(gameId: string, winnerId: string) {
     try {
       return await this.prismaService.game.update({
         data: {
-          is_game_over: false,
-          players: {
-            updateMany: {
-              data: {
-                pick: null,
-              },
-              where: {
-                game_id: gameId,
-              },
-            },
-          },
+          is_game_over: true,
+          is_ready: true,
+          winner_id: winnerId,
         },
         where: {
           id: gameId,
@@ -58,12 +50,11 @@ class GameRepository {
     }
   }
 
-  async setWinnerById(gameId: string, winnerId: string) {
+  async setReadyById(gameId: string, isReady: boolean) {
     try {
       return await this.prismaService.game.update({
         data: {
-          is_game_over: true,
-          winner_id: winnerId,
+          is_ready: isReady,
         },
         where: {
           id: gameId,

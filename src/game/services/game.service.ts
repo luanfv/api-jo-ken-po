@@ -17,6 +17,8 @@ import { GetGameByIdOutput } from './game.service.type';
 
 @Injectable()
 class GameService {
+  private readonly MAX_PLAYERS = 2;
+
   constructor(
     private gameRepository: GameRepository,
     private playerRepository: PlayerRepository,
@@ -109,6 +111,21 @@ class GameService {
       );
     }
 
+    const players = await this.playerRepository.getByGameId(gameId);
+    const readyPlayers = players.filter(
+      (currencyPlayer) => !!currencyPlayer.pick,
+    );
+
+    if (readyPlayers.length === this.MAX_PLAYERS) {
+      const updatedGame = await this.gameRepository.setReadyById(gameId, true);
+
+      if (!updatedGame) {
+        return new InternalServerErrorException(
+          'Internal server error in update game',
+        );
+      }
+    }
+
     return updatedPlayer;
   }
 
@@ -141,7 +158,7 @@ class GameService {
 
     if (existingGame.is_game_over) {
       return new HttpException(
-        'This game is over, you need to restart the game',
+        'This game is over, you need start new game',
         HttpStatus.BAD_REQUEST,
       );
     }
@@ -149,11 +166,11 @@ class GameService {
     const players = await this.playerRepository.getByGameId(gameId);
 
     if (!Array.isArray(players) || !players[0] || !players[1]) {
-      return new HttpException('Not enough players', HttpStatus.BAD_REQUEST);
+      return new BadRequestException('Not enough players');
     }
 
-    if (!players[0].pick || !players[1].pick) {
-      return new HttpException('Not all players pick', HttpStatus.BAD_REQUEST);
+    if (!existingGame.is_ready) {
+      return new BadRequestException('Not all players pick');
     }
 
     const winnerId = this.getGamesWinnerId(players);

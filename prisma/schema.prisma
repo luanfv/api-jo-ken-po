@@ -13,6 +13,7 @@ datasource db {
 model Game {
   id             String      @id
   is_game_over    Boolean       @default(false)
+  is_ready    Boolean       @default(false)
   players    Player[]
   winner_id  String?
   created_at     DateTime    @default(now())

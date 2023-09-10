@@ -10,6 +10,9 @@ class GameResponse implements Game {
   is_game_over: boolean;
 
   @ApiProperty()
+  is_ready: boolean;
+
+  @ApiProperty()
   winner_id: string;
 
   @ApiProperty()
