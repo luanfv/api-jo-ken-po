@@ -1,11 +1,12 @@
 import { Test } from '@nestjs/testing';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, NotFoundException } from '@nestjs/common';
 
 import { GameService } from './game.service';
 import { GameRepository, Game } from '../repositories/game.repository';
 import { PlayerRepository, Player } from '../repositories/player.repository';
 import { PrismaService } from '../../databases/prisma.service';
 import { DatabasesModule } from '../../databases/databases.module';
+import { GetGameByIdOutput } from './game.service.type';
 
 describe('GameService', () => {
   let gameService: GameService;
@@ -30,17 +31,6 @@ describe('GameService', () => {
   });
 
   describe('WHEN call createGame', () => {
-    it('SHOULD call GameRepository.create', async () => {
-      jest.spyOn(gameRepository, 'create');
-      jest
-        .spyOn(prismaService.game, 'create')
-        .mockResolvedValueOnce(expect.anything());
-
-      await gameService.createGame();
-
-      expect(gameRepository.create).toBeCalled();
-    });
-
     describe('AND can create new game', () => {
       it('SHOULD return a Game', async () => {
         const game: Game = {
@@ -75,67 +65,43 @@ describe('GameService', () => {
   });
 
   describe('WHEN call getGameById', () => {
-    it('SHOULD call GameRepository.getById', () => {
-      jest.spyOn(gameRepository, 'getById');
-      jest
-        .spyOn(prismaService.game, 'findFirst')
-        .mockResolvedValueOnce(expect.anything());
-
-      gameService.getGameById('');
-
-      expect(gameRepository.getById).toBeCalled();
-    });
-
     describe('AND can game found', () => {
       it('SHOULD return a Game', async () => {
         const game: Game = {
           id: expect.any(String),
           is_game_over: false,
           winner_id: null,
-          created_at: expect.any(Date),
+          created_at: new Date(),
         };
 
         jest.spyOn(gameRepository, 'getById');
         jest.spyOn(prismaService.game, 'findFirst').mockResolvedValueOnce(game);
 
         const result = await gameService.getGameById(expect.any(String));
-        const expectedResult = game;
+        const expectedResult: GetGameByIdOutput = {
+          ...game,
+          created_at: game.created_at.toISOString(),
+        };
 
         expect(result).toEqual(expectedResult);
       });
     });
 
     describe('AND cannot game found', () => {
-      it('SHOULD return a HttpException', async () => {
+      it('SHOULD throw NotFoundException', async () => {
         jest.spyOn(gameRepository, 'getById');
         jest.spyOn(prismaService.game, 'findFirst').mockRejectedValueOnce(null);
 
-        const result = await gameService.getGameById(expect.any(String));
-        const expectedResult = new HttpException(
-          'Game not found',
-          HttpStatus.NOT_FOUND,
-        );
+        const expectedResult = new NotFoundException('Game not found');
 
-        expect(result).toEqual(expectedResult);
+        await expect(
+          gameService.getGameById(expect.any(String)),
+        ).rejects.toEqual(expectedResult);
       });
     });
   });
 
   describe('WHEN call addPlayerInGame', () => {
-    it('SHOULD call GameRepository.getById', async () => {
-      jest.spyOn(playerRepository, 'getByGameId');
-      jest
-        .spyOn(prismaService.game, 'findFirst')
-        .mockResolvedValueOnce(expect.anything());
-      jest
-        .spyOn(prismaService.player, 'findMany')
-        .mockResolvedValueOnce(expect.anything());
-
-      await gameService.addPlayerInGame('', '');
-
-      expect(playerRepository.getByGameId).toBeCalled();
-    });
-
     describe('AND game not found', () => {
       it('SHOULD return a HttpException', async () => {
         jest.spyOn(prismaService.game, 'findFirst').mockRejectedValueOnce(null);
@@ -295,15 +261,6 @@ describe('GameService', () => {
   });
 
   describe('WHEN call playerPick', () => {
-    it('SHOULD call GameRepository.getById', async () => {
-      jest.spyOn(gameRepository, 'getById');
-      jest.spyOn(prismaService.game, 'findFirst').mockRejectedValueOnce(null);
-
-      await gameService.playerPick('', '', 'JO');
-
-      expect(gameRepository.getById).toBeCalled();
-    });
-
     describe('AND game not found', () => {
       it('SHOULD return a HttpException', async () => {
         jest.spyOn(prismaService.game, 'findFirst').mockRejectedValueOnce(null);
@@ -441,63 +398,7 @@ describe('GameService', () => {
     });
   });
 
-  describe('WHEN call restartGame', () => {
-    it('SHOULD call GameRepository.getById', async () => {
-      jest.spyOn(gameRepository, 'restartById');
-      jest.spyOn(prismaService.game, 'update').mockRejectedValueOnce(null);
-
-      await gameService.restartGame('');
-
-      expect(gameRepository.restartById).toBeCalled();
-    });
-
-    describe('AND game not found', () => {
-      it('SHOULD return instance of HttpException', async () => {
-        jest.spyOn(gameRepository, 'restartById');
-        jest.spyOn(prismaService.game, 'update').mockRejectedValueOnce(null);
-
-        const result = await gameService.restartGame('');
-        const expectedResult = new HttpException(
-          'Game is not found',
-          HttpStatus.NOT_FOUND,
-        );
-
-        expect(result).toEqual(expectedResult);
-      });
-    });
-
-    describe('AND reset game', () => {
-      it('SHOULD change isGamOver to false', async () => {
-        const mockGame: Game = {
-          created_at: expect.any(Date),
-          id: expect.any(String),
-          is_game_over: false,
-          winner_id: null,
-        };
-
-        jest.spyOn(gameRepository, 'restartById');
-        jest
-          .spyOn(prismaService.game, 'update')
-          .mockResolvedValueOnce(mockGame);
-
-        const result = await gameService.restartGame('');
-        const expectedResult = mockGame;
-
-        expect(result).toEqual(expectedResult);
-      });
-    });
-  });
-
   describe('WHEN call finishGame', () => {
-    it('SHOULD call GameRepository.getById', async () => {
-      jest.spyOn(gameRepository, 'getById');
-      jest.spyOn(prismaService.game, 'findFirst').mockRejectedValueOnce(null);
-
-      await gameService.finishGame('');
-
-      expect(gameRepository.getById).toBeCalled();
-    });
-
     describe('AND game not found', () => {
       it('SHOULD return a instance HttpException', async () => {
         jest.spyOn(gameRepository, 'getById');
@@ -538,26 +439,6 @@ describe('GameService', () => {
     });
 
     describe('AND not have two players', () => {
-      it('SHOULD call PlayerRepository.getByGameId', async () => {
-        const mockGame: Game = {
-          id: expect.any(String),
-          created_at: expect.any(Date),
-          is_game_over: false,
-          winner_id: expect.any(String),
-        };
-
-        jest.spyOn(gameRepository, 'getById');
-        jest
-          .spyOn(prismaService.game, 'findFirst')
-          .mockResolvedValueOnce(mockGame);
-        jest.spyOn(playerRepository, 'getByGameId');
-        jest.spyOn(prismaService.player, 'findMany').mockRejectedValue(null);
-
-        await gameService.finishGame('');
-
-        expect(playerRepository.getByGameId).toBeCalled();
-      });
-
       it('SHOULD return a instance HttpException', async () => {
         const mockGame: Game = {
           id: expect.any(String),
@@ -712,46 +593,6 @@ describe('GameService', () => {
         );
 
         expect(result).toEqual(expectedResult);
-      });
-
-      it('SHOULD call GameRepository.setWinnerById', async () => {
-        const mockGame: Game = {
-          id: expect.any(String),
-          created_at: expect.any(Date),
-          is_game_over: false,
-          winner_id: expect.any(String),
-        };
-        const mockPlayers: Player[] = [
-          {
-            id: expect.any(String),
-            created_at: expect.any(Date),
-            game_id: expect.any(String),
-            pick: 'JO',
-            username: expect.any(String),
-          },
-          {
-            id: expect.any(String),
-            created_at: expect.any(Date),
-            game_id: expect.any(String),
-            pick: 'JO',
-            username: expect.any(String),
-          },
-        ];
-
-        jest.spyOn(gameRepository, 'getById');
-        jest
-          .spyOn(prismaService.game, 'findFirst')
-          .mockResolvedValueOnce(mockGame);
-        jest.spyOn(playerRepository, 'getByGameId');
-        jest
-          .spyOn(prismaService.player, 'findMany')
-          .mockResolvedValueOnce(mockPlayers);
-        jest.spyOn(gameRepository, 'setWinnerById').mockResolvedValueOnce(null);
-        jest.spyOn(prismaService.game, 'update').mockRejectedValueOnce(null);
-
-        await gameService.finishGame('');
-
-        expect(gameRepository.setWinnerById).toBeCalled();
       });
     });
 

@@ -13,6 +13,7 @@ import {
   PlayerPick,
   PlayerRepository,
 } from '../repositories/player.repository';
+import { GetGameByIdOutput } from './game.service.type';
 
 @Injectable()
 class GameService {
@@ -34,14 +35,17 @@ class GameService {
     return createdGame;
   }
 
-  async getGameById(gameId: string) {
+  async getGameById(gameId: string): Promise<GetGameByIdOutput> {
     const existingGame = await this.gameRepository.getById(gameId);
 
     if (!existingGame) {
-      return new HttpException('Game not found', HttpStatus.NOT_FOUND);
+      throw new NotFoundException('Game not found');
     }
 
-    return existingGame;
+    return {
+      ...existingGame,
+      created_at: existingGame.created_at.toISOString(),
+    };
   }
 
   async addPlayerInGame(gameId: string, username: string) {
@@ -106,16 +110,6 @@ class GameService {
     }
 
     return updatedPlayer;
-  }
-
-  async restartGame(gameId: string) {
-    const updatedGame = await this.gameRepository.restartById(gameId);
-
-    if (!updatedGame) {
-      return new HttpException('Game is not found', HttpStatus.NOT_FOUND);
-    }
-
-    return updatedGame;
   }
 
   private getGamesWinnerId(players: Player[]) {
