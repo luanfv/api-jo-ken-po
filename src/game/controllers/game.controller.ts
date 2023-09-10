@@ -8,14 +8,19 @@ import {
   Post,
   HttpException,
   HttpStatus,
+  Res,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiBody, ApiResponse } from '@nestjs/swagger';
+import { Request, Response } from 'express';
 
 import { PlayerPickDTO } from '../dtos/player-pick.dto';
 import { AddPlayerInGameDTO } from '../dtos/add-player-in-game.dto';
 import { GameService } from '../services/game.service';
 import { GameResponse } from '../dtos/game.response.dto';
 import { PlayerResponse } from '../dtos/player.response.dto';
+import { CompareObjects } from '../../utils/compare-objects';
+import { GetGameByIdOutput } from '../services/game.service.type';
 
 @Controller('/games')
 class GameController {
@@ -56,25 +61,50 @@ class GameController {
     description: 'Find the game',
   })
   @Get('/:gameId')
-  async getGameById(@Param('gameId') gameId: string): Promise<GameResponse> {
-    try {
-      const response = await this.gameService.getGameById(gameId);
+  async getGameById(@Param('gameId') gameId: string): Promise<any> {
+    const response = await this.gameService.getGameById(gameId);
 
-      if (response instanceof HttpException) {
-        throw response;
-      }
+    return response;
+  }
 
-      return response;
-    } catch (err) {
-      if (err instanceof HttpException) {
-        throw err;
-      }
+  @Get('/:gameId/stream')
+  async streamGameById(
+    @Param('gameId') gameId: string,
+    @Req() request: Request,
+    @Res() response: Response,
+  ) {
+    response.setHeader('Content-Type', 'text/event-stream');
+    response.setHeader('Cache-Control', 'no-cache');
+    response.setHeader('Connection', 'keep-alive');
 
-      throw new HttpException(
-        'Internal server error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+    request.on('close', () => {
+      response.end();
+    });
+
+    let currentData: GetGameByIdOutput;
+    let nextData: GetGameByIdOutput;
+
+    currentData = await this.gameService.getGameById(gameId);
+
+    response.write(`data: ${JSON.stringify(currentData)}\n\n`);
+
+    if (currentData.is_game_over) {
+      response.end();
     }
+
+    const intervalId = setInterval(async () => {
+      nextData = await this.gameService.getGameById(gameId);
+
+      if (!CompareObjects.isEqual(currentData, nextData)) {
+        currentData = nextData;
+        response.write(`data: ${JSON.stringify(nextData)}\n\n`);
+      }
+
+      if (nextData.is_game_over) {
+        response.end();
+        clearInterval(intervalId);
+      }
+    }, 5e3);
   }
 
   @ApiTags('games')
