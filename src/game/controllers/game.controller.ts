@@ -12,14 +12,13 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiTags, ApiBody, ApiResponse } from '@nestjs/swagger';
-import { Game } from '@prisma/client';
+import { Request, Response } from 'express';
 
 import { PlayerPickDTO } from '../dtos/player-pick.dto';
 import { AddPlayerInGameDTO } from '../dtos/add-player-in-game.dto';
 import { GameService } from '../services/game.service';
 import { GameResponse } from '../dtos/game.response.dto';
 import { PlayerResponse } from '../dtos/player.response.dto';
-import { Request, Response } from 'express';
 import { CompareObjects } from '../../utils/compare-objects';
 import { GetGameByIdOutput } from '../services/game.service.type';
 

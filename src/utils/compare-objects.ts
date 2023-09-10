@@ -1,5 +1,5 @@
 class CompareObjects {
-  static isEqual(object1, object2) {
+  static isEqual(object1, object2): boolean {
     const key1 = Object.keys(object1);
     const key2 = Object.keys(object2);
 
