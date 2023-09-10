@@ -8,6 +8,8 @@ import {
   Post,
   HttpException,
   HttpStatus,
+  Req,
+  Res,
 } from '@nestjs/common';
 import { ApiTags, ApiBody, ApiResponse } from '@nestjs/swagger';
 
@@ -75,6 +77,29 @@ class GameController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  @Get('/:gameId/stream')
+  async stream(@Param('gameId') gameId: string, @Res() response) {
+    response.setHeader('Content-Type', 'text/event-stream');
+    response.setHeader('Cache-Control', 'no-cache');
+    response.setHeader('Connection', 'keep-alive');
+
+    let currentData;
+    let nextData;
+
+    currentData = await this.gameService.getGameById(gameId);
+
+    response.write(`data: ${JSON.stringify(currentData)}\n\n`);
+
+    setInterval(async () => {
+      nextData = await this.gameService.getGameById(gameId);
+
+      if (currentData !== nextData) {
+        currentData = nextData;
+        response.write(`data: ${JSON.stringify(nextData)}\n\n`);
+      }
+    }, 5e3);
   }
 
   @ApiTags('games')
